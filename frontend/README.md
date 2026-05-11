@@ -1,70 +1,138 @@
-# Getting Started with Create React App
+# The Google Meet Clone
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A video conferencing application that replicates the core functionalities of Google Meet. Built using Next.js, TypeScript, and Stream's Video and Chat SDKs, this application allows users to conduct virtual meetings with real-time video, audio, and messaging capabilities.
 
-## Available Scripts
+<p align="center">
+    <a href="https://tropicolx.hashnode.dev/building-a-google-meet-clone-with-nextjs-and-tailwindcss-part-one" style="display: block;" align="center">
+        <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1727703697955/ce9ba7d8-e626-4bdb-8fdf-a98d9061cf34.png" alt="Building a Google Meet Clone with Next.js and TailwindCSS" width="60%" />
+    </a>
+</p>
+<p align="center"><a href="https://tropicolx.hashnode.dev/building-a-google-meet-clone-with-nextjs-and-tailwindcss-part-one" align="center">Click to read!</a></p>
+    
 
-In the project directory, you can run:
+## Table of Contents
 
-### `npm start`
+- [Features](#features)
+- [Demo](#demo)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Technologies Used](#technologies-used)
+- [License](#license)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **User Authentication**: Secure user authentication using Clerk for both registered users and guests.
+- **Meeting Lobby**: Users can configure audio and video settings before joining a meeting.
+- **Dynamic Video Layouts**: Supports grid and speaker layouts with smooth animations using GSAP.
+- **Screen Sharing**: Participants can share their screens during the meeting.
+- **Real-time Messaging**: Integrated chat functionality using Stream Chat SDK.
+- **Meeting Recordings**: Ability to record meetings and access recordings afterward.
+- **Responsive Design**: Fully responsive UI built with Tailwind CSS.
+- **Interactive Controls**: Users can mute/unmute audio, enable/disable video, and more.
 
-### `npm test`
+## Demo
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+You can access a live demo of the application [here](https://google-meet-clone-eta.vercel.app/).
 
-### `npm run build`
+## Prerequisites
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Node.js** (v14 or higher)
+- **npm** or **yarn**
+- **Stream Account**: Sign up for a free account at [Stream](https://getstream.io/)
+- **Clerk Account**: Sign up for a free account at [Clerk](https://clerk.dev/)
+- **ngrok**: For exposing your local server to the internet
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Clone the Repository**
 
-### `npm run eject`
+   ```bash
+   git clone https://github.com/yourusername/google-meet-clone.git
+   cd google-meet-clone
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. **Install Dependencies**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+3. **Set Up Stream Dashboard**
+   
+   - Create a new Stream app with video calling and chat messaging enabled.
+   - Update Permissions:
+      -  Navigate to **Roles & Permissions** under **Chat messaging**.
+      -  Select the **user** role and **messaging** scope.
+      -  Edit permissions to enable:
+         - **Create Message**
+         - **Read Channel**
+         - **Read Channel Members**
+      - Save and confirm changes.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+  
+4. **Set Up Clerk Dashboard**
+   
+   [Create and setup a new Clerk application](https://tropicolx.hashnode.dev/building-a-google-meet-clone-with-nextjs-and-tailwindcss-part-one#heading-creating-a-new-clerk-project).
+    
+5. **Set Up ngrok**
+   
+   [Set up an ngrok tunnel](https://tropicolx.hashnode.dev/building-a-google-meet-clone-with-nextjs-and-tailwindcss-part-one#heading-syncing-clerk-with-your-stream-app) for the `/webhooks` route.
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+6. **Configure Clerk Webhooks**
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+   [Add the webhook to your clerk app](https://tropicolx.hashnode.dev/building-a-google-meet-clone-with-nextjs-and-tailwindcss-part-one#heading-syncing-clerk-with-your-stream-app).
+     
+7. **Set Up Environment Variables**
 
-### Code Splitting
+   Create a `.env.local` file in the root directory and add your Stream and Clerk API keys:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+   ```env
+   NEXT_PUBLIC_STREAM_API_KEY=your_stream_api_key
+   STREAM_API_SECRET=your_stream_api_secret
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+   CLERK_SECRET_KEY=your_clerk_secret_key
+   NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+   NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+   WEBHOOK_SECRET=your_clerk_webhook_signing_secret
+   ```
 
-### Analyzing the Bundle Size
+## Usage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. **Run the Development Server**
 
-### Making a Progressive Web App
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+   The application will be available at `http://localhost:3000`.
 
-### Advanced Configuration
+2. **Create a New Meeting**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+   - Visit `http://localhost:3000`.
+   - Click on **New Meeting** to generate a unique meeting link.
 
-### Deployment
+3. **Join a Meeting**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+   - Configure your audio and video settings in the lobby.
+   - Enter the meeting and start collaborating!
 
-### `npm run build` fails to minify
+## Technologies Used
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Next.js**: React framework for server-side rendering and routing.
+- **TypeScript**: Typed superset of JavaScript.
+- **Tailwind CSS**: Utility-first CSS framework.
+- **GSAP**: Animation library for smooth transitions.
+- **Stream Video SDK**: Provides video calling functionality.
+- **Stream Chat SDK**: Enables real-time messaging.
+- **Clerk**: User management and authentication.
+- **ngrok**: Exposes local servers to the internet securely.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
