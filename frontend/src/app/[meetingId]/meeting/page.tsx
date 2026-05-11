@@ -19,12 +19,14 @@ import CallInfoButton from '@/components/CallInfoButton';
 import CallEndFilled from '@/components/icons/CallEndFilled';
 import Chat from '@/components/icons/Chat';
 import ChatFilled from '@/components/icons/ChatFilled';
+import ChatNotifications from '@/components/ChatNotifications';
 import ChatPopup from '@/components/ChatPopup';
 import ClosedCaptions from '@/components/icons/ClosedCaptions';
 import GridLayout from '@/components/GridLayout';
 import Group from '@/components/icons/Group';
 import Info from '@/components/icons/Info';
 import Mood from '@/components/icons/Mood';
+import PeoplePanel from '@/components/PeoplePanel';
 import PresentToAll from '@/components/icons/PresentToAll';
 import MeetingPopup from '@/components/MeetingPopup';
 import MoreVert from '@/components/icons/MoreVert';
@@ -57,6 +59,7 @@ const Meeting = ({ params }: MeetingProps) => {
   const [chatChannel, setChatChannel] =
     useState<Channel<DefaultStreamChatGenerics>>();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isPeopleOpen, setIsPeopleOpen] = useState(false);
   const [isRecordingListOpen, setIsRecordingListOpen] = useState(false);
   const [participantInSpotlight, _] = participants;
   const [prevParticipantsCount, setPrevParticipantsCount] = useState(0);
@@ -130,6 +133,10 @@ const Meeting = ({ params }: MeetingProps) => {
     setIsChatOpen((prev) => !prev);
   };
 
+  const togglePeoplePopup = () => {
+    setIsPeopleOpen((prev) => !prev);
+  };
+
   const toggleRecordingsList = () => {
     setIsRecordingListOpen((prev) => !prev);
   };
@@ -156,24 +163,24 @@ const Meeting = ({ params }: MeetingProps) => {
             <ToggleVideoButton />
             <CallControlButton
               icon={<ClosedCaptions />}
-              title={'Turn on captions'}
+              title={'Ativar legendas'}
             />
             <CallControlButton
               icon={<Mood />}
-              title={'Send a reaction'}
+              title={'Enviar uma reação'}
               className="hidden sm:inline-flex"
             />
             <CallControlButton
               onClick={toggleScreenShare}
               icon={<PresentToAll />}
-              title={'Present now'}
+              title={'Apresentar agora'}
             />
             <RecordCallButton />
             <div className="hidden sm:block relative">
               <CallControlButton
                 onClick={toggleRecordingsList}
                 icon={<MoreVert />}
-                title={'View recording list'}
+                title={'Ver lista de gravações'}
               />
               <RecordingsPopup
                 isOpen={isRecordingListOpen}
@@ -183,23 +190,38 @@ const Meeting = ({ params }: MeetingProps) => {
             <CallControlButton
               onClick={leaveCall}
               icon={<CallEndFilled />}
-              title={'Leave call'}
+              title={'Sair da chamada'}
               className="leave-call-button"
             />
           </div>
           {/* Meeting Info */}
           <div className="hidden sm:flex grow shrink basis-1/4 items-center justify-end mr-3">
-            <CallInfoButton icon={<Info />} title="Meeting details" />
-            <CallInfoButton icon={<Group />} title="People" />
+            <CallInfoButton icon={<Info />} title="Detalhes da reunião" />
+            <CallInfoButton
+              onClick={togglePeoplePopup}
+              icon={<Group />}
+              title="Pessoas"
+            />
             <CallInfoButton
               onClick={toggleChatPopup}
               icon={
                 isChatOpen ? <ChatFilled color="var(--icon-blue)" /> : <Chat />
               }
-              title="Chat with everyone"
+              title="Conversar com todos"
             />
           </div>
         </div>
+        <ChatNotifications
+          channel={chatChannel}
+          isChatOpen={isChatOpen}
+          currentUserId={chatClient?.userID || user?.id}
+          onClickToast={() => setIsChatOpen(true)}
+        />
+        <PeoplePanel
+          isOpen={isPeopleOpen}
+          onClose={() => setIsPeopleOpen(false)}
+          meetingId={meetingId}
+        />
         <ChatPopup
           channel={chatChannel!}
           isOpen={isChatOpen}

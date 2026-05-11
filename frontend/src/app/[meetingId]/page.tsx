@@ -101,18 +101,18 @@ const Lobby = ({ params }: LobbyProps) => {
   }, [newMeeting, setNewMeeting]);
 
   const heading = useMemo(() => {
-    if (loading) return 'Getting ready...';
-    return isGuest ? "What's your name?" : 'Ready to join?';
+    if (loading) return 'Preparando...';
+    return isGuest ? 'Qual é o seu nome?' : 'Pronto para entrar?';
   }, [loading, isGuest]);
 
   const participantsUI = useMemo(() => {
     switch (true) {
       case loading:
-        return "You'll be able to join in just a moment";
+        return 'Você poderá entrar em instantes';
       case joining:
-        return "You'll join the call in just a moment";
+        return 'Você entrará na chamada em instantes';
       case participants.length === 0:
-        return 'No one else is here';
+        return 'Ninguém mais está aqui';
       case participants.length > 0:
         return <CallParticipants participants={participants} />;
       default:
@@ -162,10 +162,10 @@ const Lobby = ({ params }: LobbyProps) => {
         <Header />
         <div className="w-full h-full flex flex-col items-center justify-center mt-[6.75rem]">
           <h1 className="text-4xl leading-[2.75rem] font-normal text-dark-gray tracking-normal mb-12">
-            Invalid video call name.
+            Nome de chamada inválido.
           </h1>
           <Button size="sm" onClick={() => router.push('/')}>
-            Return to home screen
+            Voltar para a tela inicial
           </Button>
         </div>
       </div>
@@ -186,9 +186,9 @@ const Lobby = ({ params }: LobbyProps) => {
           </h2>
           {isGuest && !loading && (
             <TextField
-              label="Name"
+              label="Nome"
               name="name"
-              placeholder="Your name"
+              placeholder="Seu nome"
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
             />
@@ -204,7 +204,7 @@ const Lobby = ({ params }: LobbyProps) => {
                 disabled={isGuest && !guestName}
                 rounding="lg"
               >
-                Join now
+                Participar agora
               </Button>
             )}
             {(joining || loading) && (

@@ -54,7 +54,7 @@ const MeetingPopup = () => {
     <Popup
       open={!seen[meetingId]}
       onClose={onClose}
-      title={<h2>Your meeting&apos;s ready</h2>}
+      title={<h2>Sua reunião está pronta</h2>}
       className="bottom-0 -translate-y-22.5 animate-popup"
     >
       <div className="p-6 pt-0">
@@ -68,10 +68,10 @@ const MeetingPopup = () => {
           size="sm"
           variant="secondary"
         >
-          Add others
+          Adicionar pessoas
         </ButtonWithIcon>
         <div className="mt-2 text-dark-gray text-sm font-roboto tracking-looserst">
-          Or share this meeting link with others you want in the meeting
+          Ou compartilhe este link com quem você quer na reunião
         </div>
         <div className="mt-2">
           <Clipboard value={clipboardValue} />
@@ -80,16 +80,15 @@ const MeetingPopup = () => {
           <Image
             width={26}
             height={26}
-            alt="Your meeting is safe"
+            alt="Sua reunião é segura"
             src="https://www.gstatic.com/meet/security_shield_with_background_2f8144e462c57b3e56354926e0cda615.svg"
           />
           <div className="text-xs font-roboto text-meet-gray tracking-wide">
-            People who use this meeting link must get your permission before
-            they can join.
+            As pessoas que usarem este link precisarão da sua autorização para entrar.
           </div>
         </div>
         <div className="text-xs font-roboto text-meet-gray tracking-wide">
-          Joined as {email}
+          Conectado como {email}
         </div>
       </div>
     </Popup>

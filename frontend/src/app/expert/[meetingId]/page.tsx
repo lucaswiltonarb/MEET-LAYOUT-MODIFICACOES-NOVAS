@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useUser, SignInButton } from '@clerk/nextjs';
 import Link from 'next/link';
+import ConfirmModal from '@/components/ConfirmModal';
 
 type Fake = { _id: string; name: string; avatarColor: string; imageUrl?: string };
 type Comment = { _id: string; fakeProfileId: string; text: string; delaySeconds: number; sent: boolean };
@@ -24,6 +25,26 @@ export default function ExpertMeetingPanel() {
   const [bulkShuffle, setBulkShuffle] = useState(true);
   const [bulkBusy, setBulkBusy] = useState(false);
 
+  // Modal state (replaces alert/confirm)
+  type ModalState = {
+    open: boolean;
+    title: string;
+    message?: React.ReactNode;
+    variant?: 'info' | 'danger' | 'success';
+    confirmLabel?: string;
+    cancelLabel?: string | null;
+    onConfirm?: () => void;
+  };
+  const [modal, setModal] = useState<ModalState>({ open: false, title: '' });
+  const showAlert = (title: string, message?: React.ReactNode, variant: ModalState['variant'] = 'info') =>
+    setModal({ open: true, title, message, variant, confirmLabel: 'OK', cancelLabel: null, onConfirm: () => setModal({ open: false, title: '' }) });
+  const showConfirm = (title: string, message: React.ReactNode, onYes: () => void, variant: ModalState['variant'] = 'danger', confirmLabel = 'Excluir') =>
+    setModal({
+      open: true, title, message, variant, confirmLabel, cancelLabel: 'Cancelar',
+      onConfirm: () => { setModal({ open: false, title: '' }); onYes(); },
+    });
+  const closeModal = () => setModal({ open: false, title: '' });
+
   const load = useCallback(async () => {
     const [c, f, cm] = await Promise.all([
       fetch('/api/expert/check').then(r => r.json()),
@@ -41,7 +62,7 @@ export default function ExpertMeetingPanel() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ meetingId, name: newFakeName.trim() }),
     });
-    if (!res.ok) { const d = await res.json(); alert(d.error); return; }
+    if (!res.ok) { const d = await res.json(); showAlert('Não foi possível adicionar', d.error, 'danger'); return; }
     setNewFakeName(''); load();
   };
 
@@ -50,10 +71,10 @@ export default function ExpertMeetingPanel() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ meetingId, count }),
     });
-    if (!res.ok) { const d = await res.json(); alert(d.error); return; }
+    if (!res.ok) { const d = await res.json(); showAlert('Não foi possível adicionar', d.error, 'danger'); return; }
     const d = await res.json();
     if (d.created < count) {
-      alert(`Foram criados ${d.created} de ${count} (limite do plano atingido)`);
+      showAlert('Adicionado parcialmente', `Foram criados ${d.created} de ${count} (limite do plano atingido)`, 'info');
     }
     load();
   };
@@ -62,19 +83,24 @@ export default function ExpertMeetingPanel() {
     setNewComment(c => ({ ...c, text: c.text + emoji }));
   };
 
-  const delFake = async (id: string) => {
-    if (!confirm('Excluir esse fake e seus comentários?')) return;
-    await fetch(`/api/expert/fakes?id=${id}`, { method: 'DELETE' });
-    load();
+  const delFake = (id: string, name: string) => {
+    showConfirm(
+      'Excluir fake?',
+      <>Tem certeza que deseja excluir <b className="text-white">{name}</b> e todos os comentários deste participante?</>,
+      async () => {
+        await fetch(`/api/expert/fakes?id=${id}`, { method: 'DELETE' });
+        load();
+      },
+    );
   };
 
   const addComment = async () => {
-    if (!newComment.fakeProfileId || !newComment.text.trim()) { alert('Selecione um fake e digite o texto'); return; }
+    if (!newComment.fakeProfileId || !newComment.text.trim()) { showAlert('Campos obrigatórios', 'Selecione um fake e digite o texto do comentário.', 'info'); return; }
     const res = await fetch('/api/expert/comments', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ meetingId, ...newComment }),
     });
-    if (!res.ok) { const d = await res.json(); alert(d.error); return; }
+    if (!res.ok) { const d = await res.json(); showAlert('Não foi possível adicionar', d.error, 'danger'); return; }
     setNewComment({ fakeProfileId: '', text: '', delaySeconds: 10 });
     load();
   };
@@ -94,19 +120,19 @@ export default function ExpertMeetingPanel() {
 
   const startAuto = () => {
     const pending = comments.filter(c => !c.sent);
-    if (pending.length === 0) { alert('Nenhum comentário pendente'); return; }
+    if (pending.length === 0) { showAlert('Nada para iniciar', 'Nenhum comentário pendente.', 'info'); return; }
     setAutoStarted(true);
     pending.forEach(c => {
       setTimeout(() => sendNow(c._id), Math.max(0, c.delaySeconds * 1000));
     });
-    alert(`${pending.length} comentário(s) agendado(s). Mantenha esta aba aberta.`);
+    showAlert('Auto iniciado', `${pending.length} comentário(s) agendado(s). Mantenha esta aba aberta.`, 'success');
   };
 
   const submitBulk = async () => {
     const lines = bulkTexts.split('\n').map(s => s.trim()).filter(Boolean);
-    if (lines.length === 0) { alert('Cole pelo menos um comentário (1 por linha)'); return; }
-    if (fakes.length === 0) { alert('Adicione participantes fake primeiro'); return; }
-    if (bulkDelayMax < bulkDelayMin) { alert('Delay máximo deve ser >= mínimo'); return; }
+    if (lines.length === 0) { showAlert('Sem conteúdo', 'Cole pelo menos um comentário (1 por linha).', 'info'); return; }
+    if (fakes.length === 0) { showAlert('Sem fakes', 'Adicione participantes fake primeiro.', 'info'); return; }
+    if (bulkDelayMax < bulkDelayMin) { showAlert('Faixa inválida', 'O delay máximo deve ser maior ou igual ao mínimo.', 'info'); return; }
     setBulkBusy(true);
     try {
       const res = await fetch('/api/expert/comments/bulk', {
@@ -120,11 +146,11 @@ export default function ExpertMeetingPanel() {
         }),
       });
       const d = await res.json();
-      if (!res.ok) { alert(d.error || 'Erro'); return; }
+      if (!res.ok) { showAlert('Erro', d.error || 'Erro ao distribuir', 'danger'); return; }
       const msg = d.skipped > 0
         ? `${d.created} criados, ${d.skipped} ignorados (limite do plano).`
         : `${d.created} comentários distribuídos entre ${fakes.length} fakes.`;
-      alert(msg);
+      showAlert('Distribuído', msg, 'success');
       setBulkTexts('');
       setBulkOpen(false);
       load();
@@ -205,7 +231,7 @@ export default function ExpertMeetingPanel() {
                     {f.name[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1 text-sm">{f.name}</div>
-                  <button onClick={() => delFake(f._id)} className="text-red-400 text-sm hover:text-red-300">Excluir</button>
+                  <button onClick={() => delFake(f._id, f.name)} className="text-red-400 text-sm hover:text-red-300">Excluir</button>
                 </div>
               ))}
               {fakes.length === 0 && <p className="text-slate-500 text-sm text-center py-4">Nenhum fake cadastrado</p>}
@@ -349,6 +375,16 @@ export default function ExpertMeetingPanel() {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        open={modal.open}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        confirmLabel={modal.confirmLabel}
+        cancelLabel={modal.cancelLabel}
+        onConfirm={modal.onConfirm || closeModal}
+        onCancel={closeModal}
+      />
     </div>
   );
 }

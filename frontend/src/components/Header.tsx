@@ -38,16 +38,16 @@ const Header = ({ navItems = true }: HeaderProps) => {
               {currentDateTime}
             </div>
             <div className="hidden sm:contents [&>button]:mx-2.5">
-              <IconButton title="Support" icon={<Help />} />
-              <IconButton title="Report a problem" icon={<Feedback />} />
-              <IconButton title="Settings" icon={<Settings />} />
+              <IconButton title="Suporte" icon={<Help />} />
+              <IconButton title="Relatar um problema" icon={<Feedback />} />
+              <IconButton title="Configurações" icon={<Settings />} />
             </div>
           </>
         )}
         <div className="ml-2 flex items-center justify-end w-[6.5625rem] lg:ml-5">
           {navItems && (
             <div className="hidden sm:block">
-              <IconButton title="Moogle apps" icon={<Apps />} />
+              <IconButton title="Aplicativos Moogle" icon={<Apps />} />
             </div>
           )}
           <div
@@ -62,7 +62,7 @@ const Header = ({ navItems = true }: HeaderProps) => {
                   <div className="hidden sm:block mr-3 font-roboto leading-4 text-right text-meet-black">
                     <div className="text-sm leading-4">{email}</div>
                     <div className="text-sm hover:text-meet-blue cursor-pointer">
-                      Switch account
+                      Trocar de conta
                     </div>
                   </div>
                 )}
@@ -81,7 +81,7 @@ const Header = ({ navItems = true }: HeaderProps) => {
               </>
             ) : (
               <SignInButton>
-                <PlainButton size="sm">Sign In</PlainButton>
+                <PlainButton size="sm">Entrar</PlainButton>
               </SignInButton>
             )}
           </div>

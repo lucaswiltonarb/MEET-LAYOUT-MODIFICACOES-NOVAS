@@ -82,24 +82,23 @@ const MeetingEnd = ({ params, searchParams }: MeetingEndProps) => {
           </svg>
         </div>
         <span className="font-roboto text-sm tracking-loosest">
-          Returning to home screen
+          Voltando para a tela inicial
         </span>
       </div>
       <div className="mt-6 px-4 flex flex-col items-center gap-8">
         <h1 className="text-4xl leading-[2.75rem] font-normal text-dark-gray tracking-normal">
-          {invalidMeeting ? 'Check your meeting code' : 'You left the meeting'}
+          {invalidMeeting ? 'Verifique o código da reunião' : 'Você saiu da reunião'}
         </h1>
         {invalidMeeting && (
           <div className="font-roboto text-base text-meet-gray text-center">
             <p>
-              Make sure you entered the correct meeting code in the URL, for
-              example:{' '}
+              Certifique-se de ter inserido o código correto da reunião na URL, por exemplo:{' '}
             </p>
             <p>
               https://{window.location.host}/
               <span className="font-extrabold">xxx-yyyy-zzz</span>
               <a href="#" className="ml-2 text-primary">
-                Learn more
+                Saiba mais
               </a>
             </p>
           </div>
@@ -112,34 +111,34 @@ const MeetingEnd = ({ params, searchParams }: MeetingEndProps) => {
                 className="border border-hairline-gray px-[23px] shadow-[border_.28s_cubic-bezier(.4,0,.2,1),box-shadow_.28s_cubic-bezier(.4,0,.2,1)]"
                 onClick={rejoinMeeting}
               >
-                Rejoin
+                Entrar novamente
               </PlainButton>
             )}
             <Button size="sm" onClick={returnHome}>
-              Return to home screen
+              Voltar para a tela inicial
             </Button>
           </div>
-          <PlainButton size="sm">Submit feedback</PlainButton>
+          <PlainButton size="sm">Enviar feedback</PlainButton>
         </div>
         <div className="max-w-100 flex flex-wrap flex-col rounded items-center pl-4 pr-3 pt-4 pb-1 border border-hairline-gray text-left">
           <div className="flex items-center">
             <Image
-              alt="Your meeting is safe"
+              alt="Sua reunião é segura"
               width={58}
               height={58}
               src="https://www.gstatic.com/meet/security_shield_356739b7c38934eec8fb0c8e93de8543.svg"
             />
             <div className="pl-4">
               <h2 className="text-meet-black text-lg leading-6 tracking-normal font-normal">
-                Your meeting is safe
+                Sua reunião é segura
               </h2>
               <div className="font-roboto text-sm text-meet-gray tracking-loosest">
-                No one can join a meeting unless invited or admitted by the host
+                Ninguém entra na reunião sem ser convidado ou autorizado pelo organizador
               </div>
             </div>
           </div>
           <div className="pt-2 w-full flex grow justify-end whitespace-nowrap">
-            <PlainButton size="sm">Learn more</PlainButton>
+            <PlainButton size="sm">Saiba mais</PlainButton>
           </div>
         </div>
       </div>

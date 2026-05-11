@@ -55,7 +55,7 @@ const FakeTile = ({ fake }: FakeTileProps) => {
             className="relative avatar w-3/10 max-w-40 aspect-square uppercase rounded-full text-white font-sans-serif font-medium flex items-center justify-center"
             style={{ backgroundColor: fake.avatarColor }}
           >
-            <span className="text-[clamp(30px,_calc(100vw_*_0.05),_65px)] select-none">
+            <span className="text-[clamp(20px,_calc(100vw_*_0.03),_50px)] select-none">
               {initial}
             </span>
           </div>
