@@ -77,25 +77,27 @@ const FakeTile = ({ fake }: FakeTileProps) => {
         )}
       </div>
 
-      {/* Name label (matches Stream's bottom-left text) */}
+      {/* Name label — bottom-right pill (always visible) */}
       <div
+        className="participant-name-pill"
         style={{
           position: 'absolute',
-          left: 0,
-          bottom: '0.4rem',
-          maxWidth: 'calc(100% - 1rem)',
-          height: 'fit-content',
+          right: 8,
+          bottom: 8,
+          maxWidth: 'calc(100% - 16px)',
           color: 'white',
-          fontSize: 'clamp(10px, 0.85vw, 14px)',
+          fontSize: 'clamp(10px, 0.9vw, 14px)',
           fontWeight: 500,
-          margin: '0 0.6rem',
-          textShadow: '0 1px 2px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.4)',
+          padding: '3px 8px',
+          background: 'rgba(0,0,0,0.55)',
+          borderRadius: 6,
           fontFamily: 'Roboto, Arial, sans-serif',
           userSelect: 'none',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          zIndex: 1,
+          zIndex: 3,
+          pointerEvents: 'none',
         }}
       >
         {fake.name}

@@ -19,9 +19,22 @@ import VideoPlaceholder from './VideoPlaceholder';
 import FakeTile, { FakeParticipant } from './FakeTile';
 import useMeetingFakes from '../hooks/useMeetingFakes';
 
-const GROUP_SIZE = 50;
-const GRID_COLS = 10;
-const GRID_ROWS = 5;
+const MAX_PER_PAGE = 28; // 7 x 4
+
+// Returns the optimal grid dimensions for a given participant count,
+// capped at 7 columns x 4 rows so the layout fills the screen nicely.
+function calcGrid(n: number): { cols: number; rows: number } {
+  if (n <= 1) return { cols: 1, rows: 1 };
+  if (n <= 2) return { cols: 2, rows: 1 };
+  if (n <= 4) return { cols: 2, rows: 2 };
+  if (n <= 6) return { cols: 3, rows: 2 };
+  if (n <= 9) return { cols: 3, rows: 3 };
+  if (n <= 12) return { cols: 4, rows: 3 };
+  if (n <= 16) return { cols: 4, rows: 4 };
+  if (n <= 20) return { cols: 5, rows: 4 };
+  if (n <= 24) return { cols: 6, rows: 4 };
+  return { cols: 7, rows: 4 };
+}
 
 type Item =
   | { kind: 'real'; participant: StreamVideoParticipant }
@@ -45,18 +58,19 @@ const GridLayout = () => {
     return [...real, ...fk];
   }, [participants, fakes]);
 
-  const pageCount = useMemo(() => Math.max(1, Math.ceil(items.length / GROUP_SIZE)), [items]);
+  const pageCount = useMemo(() => Math.max(1, Math.ceil(items.length / MAX_PER_PAGE)), [items]);
 
   const itemGroups = useMemo(() => {
     const groups: Item[][] = [];
-    for (let i = 0; i < items.length; i += GROUP_SIZE) {
-      groups.push(items.slice(i, i + GROUP_SIZE));
+    for (let i = 0; i < items.length; i += MAX_PER_PAGE) {
+      groups.push(items.slice(i, i + MAX_PER_PAGE));
     }
     if (groups.length === 0) groups.push([]);
     return groups;
   }, [items]);
 
   const selectedGroup = itemGroups[page] || [];
+  const { cols, rows } = useMemo(() => calcGrid(selectedGroup.length || 1), [selectedGroup.length]);
 
   useEffect(() => {
     if (!call) return;
@@ -90,15 +104,15 @@ const GridLayout = () => {
         </div>
       )}
       <div
-        className={clsx('str-video__paginated-grid-layout__group fake-grid-50')}
+        className={clsx('str-video__paginated-grid-layout__group fake-grid-adaptive')}
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
-          gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`,
-          gap: 4,
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows: `repeat(${rows}, 1fr)`,
+          gap: 6,
           width: '100%',
           height: '100%',
-          padding: 4,
+          padding: 6,
         }}
       >
         {call && selectedGroup.length > 0 && (
