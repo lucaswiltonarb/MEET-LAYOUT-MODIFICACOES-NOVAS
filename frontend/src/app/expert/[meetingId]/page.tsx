@@ -17,6 +17,12 @@ export default function ExpertMeetingPanel() {
   const [newFakeName, setNewFakeName] = useState('');
   const [newComment, setNewComment] = useState({ fakeProfileId: '', text: '', delaySeconds: 10 });
   const [autoStarted, setAutoStarted] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkTexts, setBulkTexts] = useState('');
+  const [bulkDelayMin, setBulkDelayMin] = useState(5);
+  const [bulkDelayMax, setBulkDelayMax] = useState(60);
+  const [bulkShuffle, setBulkShuffle] = useState(true);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = useCallback(async () => {
     const [c, f, cm] = await Promise.all([
@@ -94,6 +100,37 @@ export default function ExpertMeetingPanel() {
       setTimeout(() => sendNow(c._id), Math.max(0, c.delaySeconds * 1000));
     });
     alert(`${pending.length} comentário(s) agendado(s). Mantenha esta aba aberta.`);
+  };
+
+  const submitBulk = async () => {
+    const lines = bulkTexts.split('\n').map(s => s.trim()).filter(Boolean);
+    if (lines.length === 0) { alert('Cole pelo menos um comentário (1 por linha)'); return; }
+    if (fakes.length === 0) { alert('Adicione participantes fake primeiro'); return; }
+    if (bulkDelayMax < bulkDelayMin) { alert('Delay máximo deve ser >= mínimo'); return; }
+    setBulkBusy(true);
+    try {
+      const res = await fetch('/api/expert/comments/bulk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meetingId,
+          texts: lines,
+          delayMin: bulkDelayMin,
+          delayMax: bulkDelayMax,
+          shuffleFakes: bulkShuffle,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) { alert(d.error || 'Erro'); return; }
+      const msg = d.skipped > 0
+        ? `${d.created} criados, ${d.skipped} ignorados (limite do plano).`
+        : `${d.created} comentários distribuídos entre ${fakes.length} fakes.`;
+      alert(msg);
+      setBulkTexts('');
+      setBulkOpen(false);
+      load();
+    } finally {
+      setBulkBusy(false);
+    }
   };
 
   if (!isLoaded) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Carregando...</div>;
@@ -179,8 +216,70 @@ export default function ExpertMeetingPanel() {
           <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-light">Comentários ({comments.length}{plan ? `/${plan.maxComments}` : ''})</h2>
-              <button data-testid="start-auto-btn" onClick={startAuto} disabled={autoStarted || comments.filter(c=>!c.sent).length===0} className="text-xs bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded disabled:opacity-50">▶ Iniciar auto</button>
+              <div className="flex gap-2">
+                <button
+                  data-testid="bulk-comments-btn"
+                  onClick={() => setBulkOpen(o => !o)}
+                  className="text-xs bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded"
+                >
+                  {bulkOpen ? '× Fechar massa' : '＋ Adicionar em massa'}
+                </button>
+                <button data-testid="start-auto-btn" onClick={startAuto} disabled={autoStarted || comments.filter(c=>!c.sent).length===0} className="text-xs bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded disabled:opacity-50">▶ Iniciar auto</button>
+              </div>
             </div>
+
+            {bulkOpen && (
+              <div className="mb-4 p-4 rounded-xl bg-indigo-950/30 border border-indigo-800/60 space-y-3" data-testid="bulk-comments-panel">
+                <div className="text-xs text-indigo-200">
+                  Cole vários comentários (1 por linha). Eles serão distribuídos entre os <b>{fakes.length}</b> fakes desta reunião, com um delay aleatório dentro da faixa abaixo.
+                </div>
+                <textarea
+                  data-testid="bulk-texts"
+                  value={bulkTexts}
+                  onChange={e => setBulkTexts(e.target.value)}
+                  placeholder={'Concordo!\nMuito bom 🔥\nFaz sentido pra mim\n...'}
+                  className="w-full min-h-[140px] rounded-lg bg-slate-950 px-4 py-2.5 border border-slate-800 outline-none focus:border-indigo-500 font-mono text-sm"
+                />
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">Delay</span>
+                    <input
+                      data-testid="bulk-delay-min"
+                      type="number" min={0}
+                      value={bulkDelayMin}
+                      onChange={e => setBulkDelayMin(Math.max(0, Number(e.target.value) || 0))}
+                      className="w-20 rounded-lg bg-slate-950 px-3 py-2 border border-slate-800 outline-none focus:border-indigo-500"
+                    />
+                    <span className="text-slate-500">→</span>
+                    <input
+                      data-testid="bulk-delay-max"
+                      type="number" min={0}
+                      value={bulkDelayMax}
+                      onChange={e => setBulkDelayMax(Math.max(0, Number(e.target.value) || 0))}
+                      className="w-20 rounded-lg bg-slate-950 px-3 py-2 border border-slate-800 outline-none focus:border-indigo-500"
+                    />
+                    <span className="text-slate-400">seg</span>
+                  </div>
+                  <label className="flex items-center gap-2 text-slate-300 cursor-pointer select-none">
+                    <input
+                      data-testid="bulk-shuffle"
+                      type="checkbox"
+                      checked={bulkShuffle}
+                      onChange={e => setBulkShuffle(e.target.checked)}
+                    />
+                    Distribuir aleatoriamente
+                  </label>
+                  <button
+                    data-testid="bulk-submit"
+                    onClick={submitBulk}
+                    disabled={bulkBusy}
+                    className="ml-auto px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    {bulkBusy ? 'Adicionando…' : `Distribuir entre ${fakes.length} fake(s)`}
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
               <select
                 data-testid="comment-fake-select"

@@ -220,3 +220,22 @@
     text-wrap: balance;
   }
 }
+/* Custom 10x5 paginated grid layout (50 tiles per page) */
+.fake-grid-50 {
+  display: grid !important;
+  grid-template-columns: repeat(10, 1fr) !important;
+  grid-template-rows: repeat(5, 1fr) !important;
+  gap: 4px !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 4px !important;
+}
+.fake-grid-50 > .str-video__participant-view {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
