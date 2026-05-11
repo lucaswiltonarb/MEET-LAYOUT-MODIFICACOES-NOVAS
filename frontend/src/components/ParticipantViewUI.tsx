@@ -151,33 +151,15 @@ const ParticipantDetails = ({}: Pick<
 
   return (
     <>
-      <div
-        className="participant-name-pill"
-        style={{
-          position: 'absolute',
-          right: 8,
-          bottom: 8,
-          maxWidth: 'calc(100% - 16px)',
-          color: 'white',
-          fontSize: 'clamp(10px, 0.9vw, 14px)',
-          fontWeight: 500,
-          padding: '3px 8px',
-          background: 'rgba(0,0,0,0.55)',
-          borderRadius: 6,
-          fontFamily: 'Roboto, Arial, sans-serif',
-          userSelect: 'none',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          zIndex: 3,
-          pointerEvents: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}
-      >
+      <div className="z-1 absolute left-0 bottom-[.65rem] max-w-94 h-fit truncate font-medium text-white text-sm flex items-center justify-start gap-4 mt-1.5 mx-4 mb-0 cursor-default select-none">
         {pinned && (pin.isLocalPin ? <KeepFilled /> : <KeepPublicFilled />)}
-        <span>{name || userId}</span>
+        <span
+          style={{
+            textShadow: '0 1px 2px rgba(0,0,0,.6), 0 0 2px rgba(0,0,0,.3)',
+          }}
+        >
+          {name || userId}
+        </span>
       </div>
     </>
   );
