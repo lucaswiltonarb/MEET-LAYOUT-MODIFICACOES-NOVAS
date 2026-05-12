@@ -93,7 +93,7 @@ const ConfirmModal = ({
             {confirmLabel}
           </button>
         </div>
-        <style jsx>{`
+        <style>{`
           @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
           @keyframes popIn { from { opacity: 0; transform: scale(.96) } to { opacity: 1; transform: scale(1) } }
         `}</style>

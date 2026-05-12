@@ -1,4 +1,4 @@
-import { SignInButton, UserButton, useUser } from '@clerk/nextjs';
+import { SignInButton, UserButton, useUser } from '@clerk/clerk-react';
 import clsx from 'clsx';
 
 import Apps from './icons/Apps';

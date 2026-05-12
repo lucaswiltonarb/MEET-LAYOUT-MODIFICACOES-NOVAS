@@ -47,7 +47,7 @@ const FakeParticipantsGrid = ({ meetingId }: FakeParticipantsGridProps) => {
           <div key={f._id} className="fake-tile" data-testid={`fake-tile-${f._id}`}>
             <div className="fake-avatar" style={{ background: f.avatarColor }}>
               {f.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+                // eslint-disable-next-line
                 <img src={f.imageUrl} alt={f.name} />
               ) : (
                 <span>{f.name.charAt(0).toUpperCase()}</span>
@@ -60,7 +60,7 @@ const FakeParticipantsGrid = ({ meetingId }: FakeParticipantsGridProps) => {
           </div>
         ))}
       </div>
-      <style jsx>{`
+      <style>{`
         .fake-participants-overlay {
           position: absolute;
           right: 16px;

@@ -4,7 +4,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
-import Image from 'next/image';
+// next/image replaced with regular img
 
 import useUserColor from '../hooks/useUserColor';
 
@@ -48,7 +48,7 @@ const Avatar = ({ text = '', width, participant = {} }: AvatarProps) => {
 
   if (image)
     return (
-      <Image
+      <img
         className="rounded-full overflow-hidden"
         src={image}
         alt={name}

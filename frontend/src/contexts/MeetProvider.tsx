@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@clerk/clerk-react';
 import { nanoid } from 'nanoid';
 import {
   Call,
@@ -19,8 +19,8 @@ type MeetProviderProps = {
 };
 
 export const CALL_TYPE = 'default';
-export const VIDEO_API_KEY = process.env.NEXT_PUBLIC_STREAM_VIDEO_API_KEY as string;
-export const CHAT_API_KEY = process.env.NEXT_PUBLIC_STREAM_CHAT_API_KEY as string;
+export const VIDEO_API_KEY = process.env.REACT_APP_STREAM_VIDEO_API_KEY as string;
+export const CHAT_API_KEY = process.env.REACT_APP_STREAM_CHAT_API_KEY as string;
 // Backward-compat: some files reference API_KEY
 export const API_KEY = VIDEO_API_KEY;
 export const GUEST_ID = `guest_${nanoid(15)}`;
@@ -92,7 +92,7 @@ const MeetProvider = ({ meetingId, children }: MeetProviderProps) => {
     const _chatClient = StreamChat.getInstance(CHAT_API_KEY);
     const _videoClient = new StreamVideoClient({
       apiKey: VIDEO_API_KEY,
-      user,
+      user: user as any,
       tokenProvider: videoTokenProvider,
     });
     const _call = _videoClient.call(CALL_TYPE, meetingId);
@@ -115,7 +115,7 @@ const MeetProvider = ({ meetingId, children }: MeetProviderProps) => {
       _videoClient.disconnectUser();
       _chatClient.disconnectUser();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [clerkUser, isLoaded, isSignedIn, meetingId]);
 
   if (loading) return <LoadingOverlay />;

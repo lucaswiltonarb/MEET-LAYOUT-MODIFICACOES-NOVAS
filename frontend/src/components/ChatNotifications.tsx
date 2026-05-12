@@ -113,7 +113,7 @@ const ChatNotifications = ({ channel, isChatOpen, currentUserId, onClickToast }:
             }}
           >
             {t.authorImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
+              // eslint-disable-next-line
               <img src={t.authorImage} alt={t.authorName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               t.authorInitial
@@ -138,7 +138,7 @@ const ChatNotifications = ({ channel, isChatOpen, currentUserId, onClickToast }:
           <span style={{ color: '#8ab4f8', fontSize: 18, flexShrink: 0 }}>↵</span>
         </div>
       ))}
-      <style jsx>{`
+      <style>{`
         @keyframes chatToastIn {
           from { transform: translateX(20px); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }

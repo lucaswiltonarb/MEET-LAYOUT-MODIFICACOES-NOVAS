@@ -178,7 +178,7 @@ const PersonRow = ({
       }}
     >
       {image ? (
-        // eslint-disable-next-line @next/next/no-img-element
+        // eslint-disable-next-line
         <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : (
         (name.trim()[0] || '?').toUpperCase()

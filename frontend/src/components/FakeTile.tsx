@@ -38,7 +38,7 @@ const FakeTile = ({ fake }: FakeTileProps) => {
       {/* Placeholder identical to a real participant without video */}
       <div className="absolute w-full h-full rounded-[inherit] bg-dark-gray flex items-center justify-center participant-view-placeholder">
         {fake.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
+          // eslint-disable-next-line
           <img
             src={fake.imageUrl}
             alt={fake.name}

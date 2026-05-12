@@ -1,5 +1,5 @@
 import { forwardRef, useMemo } from 'react';
-import Image from 'next/image';
+// next/image replaced
 import {
   useParticipantViewContext,
   type VideoPlaceholderProps,
@@ -28,7 +28,7 @@ const VideoPlaceholder = forwardRef<HTMLDivElement, VideoPlaceholderProps>(
         className={`absolute w-full h-full rounded-[inherit] bg-dark-gray flex items-center justify-center ${placeholderClassName}`}
       >
         {participant.image && (
-          <Image
+          <img
             className="max-w-3/10 rounded-full overflow-hidden"
             src={participant.image}
             alt={participant.userId}
