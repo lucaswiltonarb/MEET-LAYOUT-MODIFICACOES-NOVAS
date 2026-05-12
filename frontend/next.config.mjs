@@ -10,6 +10,8 @@ const nextConfig = {
   },
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+  // Hide Next.js dev indicators / error issue button at the bottom of the page
+  devIndicators: false,
 };
 
 export default nextConfig;

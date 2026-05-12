@@ -235,3 +235,42 @@
   overflow: hidden !important;
   position: relative !important;
 }
+
+/* Dark theme overrides for Stream Chat inside ChatPopup */
+.chat-popup-dark .str-chat,
+.chat-popup-dark .str-chat__container,
+.chat-popup-dark .str-chat__main-panel,
+.chat-popup-dark .str-chat__list,
+.chat-popup-dark .str-chat__message-list-scroll {
+  background: #1f1f1f !important;
+  color: #e8eaed !important;
+}
+.chat-popup-dark .str-chat__message-input,
+.chat-popup-dark .str-chat__input-flat,
+.chat-popup-dark .str-chat__message-input-inner {
+  background: #1f1f1f !important;
+}
+.chat-popup-dark .str-chat__textarea textarea,
+.chat-popup-dark textarea.rta__textarea {
+  background: #2a2a2a !important;
+  color: white !important;
+  border: 1px solid #3c4043 !important;
+  border-radius: 24px !important;
+}
+.chat-popup-dark .str-chat__message-simple-text-inner,
+.chat-popup-dark .str-chat__message-text-inner,
+.chat-popup-dark .str-chat__message-bubble {
+  background: #2a2a2a !important;
+  color: #e8eaed !important;
+}
+.chat-popup-dark .str-chat__message-author,
+.chat-popup-dark .str-chat__message-team-author,
+.chat-popup-dark .str-chat__message-username {
+  color: #e8eaed !important;
+}
+.chat-popup-dark .str-chat__date-separator-line {
+  background: #3c4043 !important;
+}
+.chat-popup-dark .str-chat__date-separator-date {
+  color: #9aa0a6 !important;
+}

@@ -44,6 +44,18 @@ export async function POST(request: Request) {
     return Response.json({ error: 'meetingId and name required' }, { status: 400 });
   }
 
+  const trimmedName = String(name).trim();
+
+  // Block duplicate names within the same meeting
+  const dupe = await db.collection('fake_profiles').findOne({
+    expertId: String(expert._id),
+    meetingId,
+    name: trimmedName,
+  });
+  if (dupe) {
+    return Response.json({ error: `Já existe um fake chamado "${trimmedName}" nesta reunião.` }, { status: 409 });
+  }
+
   // Enforce plan limits
   if (plan) {
     const count = await db.collection('fake_profiles').countDocuments({ expertId: String(expert._id), meetingId });
@@ -59,7 +71,7 @@ export async function POST(request: Request) {
   const doc: any = {
     expertId: String(expert._id),
     meetingId,
-    name: String(name).trim(),
+    name: trimmedName,
     avatarColor,
     imageUrl: imageUrl || undefined,
     active: true,
@@ -88,10 +100,37 @@ export async function DELETE(request: Request) {
   const { db, expert } = ctx;
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
+  const ids = searchParams.get('ids');
+  const all = searchParams.get('all');
+  const meetingId = searchParams.get('meetingId');
+
+  // Delete ALL fakes of a meeting
+  if (all === 'true') {
+    if (!meetingId) return Response.json({ error: 'meetingId required' }, { status: 400 });
+    const list = await db.collection('fake_profiles').find({ expertId: String(expert._id), meetingId }).toArray();
+    const objIds = list.map((d: any) => d._id);
+    const strIds = list.map((d: any) => String(d._id));
+    await db.collection('fake_profiles').deleteMany({ _id: { $in: objIds } });
+    await db.collection('scheduled_comments').deleteMany({ fakeProfileId: { $in: strIds } });
+    return Response.json({ ok: true, deleted: strIds.length });
+  }
+
+  // Delete multiple ids (comma-separated)
+  if (ids) {
+    const idList = ids.split(',').map((s) => s.trim()).filter(Boolean);
+    const objIds = idList.map((i) => new ObjectId(i));
+    const list = await db.collection('fake_profiles').find({ _id: { $in: objIds }, expertId: String(expert._id) }).toArray();
+    const strIds = list.map((d: any) => String(d._id));
+    await db.collection('fake_profiles').deleteMany({ _id: { $in: list.map((d: any) => d._id) } });
+    await db.collection('scheduled_comments').deleteMany({ fakeProfileId: { $in: strIds } });
+    return Response.json({ ok: true, deleted: strIds.length });
+  }
+
+  // Single delete
   if (!id) return Response.json({ error: 'id required' }, { status: 400 });
   const doc = await db.collection('fake_profiles').findOne({ _id: new ObjectId(id), expertId: String(expert._id) });
   if (!doc) return Response.json({ error: 'not found' }, { status: 404 });
   await db.collection('fake_profiles').deleteOne({ _id: new ObjectId(id) });
   await db.collection('scheduled_comments').deleteMany({ fakeProfileId: id });
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, deleted: 1 });
 }
