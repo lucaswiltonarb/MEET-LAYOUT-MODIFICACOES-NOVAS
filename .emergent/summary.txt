@@ -1,0 +1,115 @@
+<analysis>**original_problem_statement**: RODE E EXECUTE ESSE PROJETO MEU, É PUBLICO NO GITHUB: https://github.com/alanvictorms/MEET-FAKE.git. ACREDITO QUE AS ENV JA POSSUEM AS CREDENCIAIS VINCULADAS, EXECUTE O PROJETO GASTANDO MENOR QUANTIDADE DE CREDITOS POSSIVEIS QUE VOU PEDIR PARA REALIZAR ALGUMAS ALTERAÇOES AO FINAL.
+
+**User's preferred language**: Portuguese (You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in Portuguese only).
+
+**what currently exists?**: A fully functional Google Meet clone powered by Next.js, Clerk (Auth), Stream (Video/Chat), and MongoDB. The system features an  admin panel to manage fake participants and inject fake chat messages. Recently, the app was heavily customized to include an adaptive 7x4 grid layout, full PT-BR localization, a People side panel, chat notifications, and advanced expert panel controls (comment library, broadcast messaging, bulk add/delete).
+
+**Last working item**:
+    - Last item agent was working: Reverting the font size of the avatar initials for fake participants in  to exactly  after the user expressed extreme frustration over a CSS update that made the letters gigantic. 
+    - Status: USER VERIFICATION PENDING
+    - Agent Testing Done: N (Agent skipped testing explicitly because the user demanded the absolute minimum credit usage possible).
+    - Which testing method agent to use? Screenshot tool (Use sparingly, only if strictly necessary, to respect the user's strict credit constraints).
+    - User Testing Done: N
+
+**All Pending/In progress Issue list**:
+  None currently. The agent successfully applied the exact font size clamp requested by the user in their latest message. Await user confirmation or their next feature request.
+
+**In progress Task List**:
+  None.
+
+**Upcoming and Future Tasks**:
+  None explicitly requested yet. The user has been iteratively requesting UI tweaks and expert panel features. 
+
+**Completed work in this session**:
+- Cloned GitHub repo and configured Next.js/FastAPI proxy/MongoDB setup.
+-  → Adaptive Grid (max 7x4 = 28 per page) adjusting dynamically based on participant count.
+-  → Overhauled UI to perfectly mirror real participants (mic-off icon, hover menu overlay, bottom-left name pill). Reverted avatar initial font-size to user's strict specifications.
+- Translated UI text to PT-BR across all main views (, , , , etc.).
+-  → Added toast notifications for incoming chat messages when the chat panel is closed.
+-  → Built a side panel showing real + fake participants.
+-  → Overhauled Expert Admin Panel: added bulk add/delete, custom fake amounts, broadcast chat, multi-line comment addition, comment library (), and replaced native browser alerts with .
+-  → Hid Next.js dev issues portal button ().
+
+**Earlier issues found/mentioned but not fixed**:
+  None.
+
+**Known issue recurrence from previous fork**:
+  - Issue recurrence in previous fork: N/A (First fork)
+  - Recurrence count: 0
+  - Status: NOT STARTED
+
+**Code Architecture**:
+
+
+**Key Technical Concepts**:
+Next.js 15 (App Router), Tailwind CSS, FastAPI (as a reverse proxy to Next.js on port 3000), MongoDB, Clerk (Authentication), Stream Video & Chat.
+
+**key DB schema**:
+  - : { _id, streamId, name, imageUrl, meetingId }
+  - : { _id, fakeProfileId, meetingId, text, delay }
+  - : { _id, text }
+
+**changes in tech stack**:
+Instead of a standard React CRA, the frontend uses the Next.js 15 template brought in from the user's GitHub repository. FastAPI is set up strictly as a proxy routing to the Next.js server running on port 3000.
+
+**All files of reference**:
+  - : Heavily modified to match real participant DOM structure and adjust avatar sizing.
+  - : Updated for adaptive 7x4 grid logic.
+  - : Rewritten to support advanced expert features (library, bulk, broadcast).
+  - : New component for chat toasts.
+  - : New component for the people side-panel.
+  - : New component replacing window.alert/confirm.
+  - : Contains critical overrides for hiding Next.js dev portal and chat dark mode.
+
+**Areas that need refactoring**:
+The user is **highly critical** of styling experiments. Stick strictly to requested Tailwind classes or exact CSS logic requested by the user. Do not try to fix UI proportions unless explicitly instructed.
+
+**key api endpoints**:
+  -  (Distribute comments among fakes)
+  -  (Add multiple specific comments)
+  -  (Send same message from all fakes)
+  -  (Manage comment library)
+  -  (Bulk delete fakes)
+
+**Critical Info for New Agent**:
+- **CREDIT SENSITIVITY:** The user is EXTREMELY sensitive to credit usage. They explicitly command the agent NOT to run unnecessary tests or use tools unnecessarily (SEJA ECONOMICO, GASTE POUCO CREDITO, NAO PRECISA TESTAR NADA). **DO NOT call the testing subagent unless absolutely blocking.**
+- **UI FRUSTRATION:** The user got extremely angry in the final prompt because a CSS adjustment for the fake participant avatars made the initials too large. The agent reverted it to exactly . Do not touch this logic again unless asked.
+- **DEPLOYMENT:** The user initially asked for a deployment script/html for an Ubuntu VPS but canceled this request in the subsequent prompt (NAO PRECISA MAIS DEPLOY, IREI FAZER DEPLOY POR AQUI MESMO).
+
+**documents and test reports created in this job**:
+  None. (Agent intentionally skipped generating  and  to adhere to the user's strict commands about minimizing tool calls and credit usage).
+
+**Last 10 User Messages and any pending HUMAN messages**:
+ 1. User shouted in all caps that the avatar initials were gigantic and demanded they be reverted to  while complaining about the agent wasting credits/making mistakes. (RESOLVED)
+ 2. User asked to hide the Next.js Issues portal button, adjust the avatar initial circle styling to be perfectly round without distortion, and match the chat background to the people panel. (RESOLVED)
+ 3. User canceled the previous deployment request. They asked to finish UI styling, remove the Next.js issue errors overlay, overhaul the Expert Admin panel (bulk actions, library, broadcast, custom amounts), match chat background color, and adjust FakeTile avatar font sizes. (RESOLVED)
+ 4. User requested an  and  for an Ubuntu 22.04 VPS deployment. (CANCELLED by user in next prompt)
+ 5. User asked to adjust fake participant avatar initial font size, translate all UI text to PT-BR, add a Chat notification toast when chat is closed, make the People button open a side panel, and replace native browser alerts in the expert panel with a custom modal. (RESOLVED)
+ 6. User sent screenshots pointing out mistakes: Fake participants were missing the mic-off icon, the fake participant name was in the wrong place (wanted it over the card like real participants), and fake participants were missing the hover menus. (RESOLVED)
+ 7. User complained that the 50-person grid was terrible, asked for a dynamic adaptive grid (max 7x4), and requested the name be moved to the bottom right. (RESOLVED - Note: name placement was later moved back to perfectly mirror real participants).
+ 8. User sent a screenshot asking to show 50 participants per page (10 horizontal x 5 vertical), place fake participant names in the bottom-left of the card, and add a button in the expert admin to add comments dynamically in bulk. (RESOLVED)
+ 9. System auto-restarted the pod due to memory limit. (ACKNOWLEDGED)
+ 10. User provided Clerk, Webhook, and Stream API credentials. (RESOLVED)
+
+**Project Health Check**:
+- Broken: None
+- Mocked: None
+Backend and Frontend processes are running successfully in the background via supervisor.
+
+**3rd Party Integrations**:
+ - Clerk (Authentication) — requires User API Key
+ - Stream Chat & Video — requires User API Key
+ - MongoDB — Local
+
+**Testing status**:
+  - Testing agent used after significant changes: NO (Explicitly forbidden by user to save credits)
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: []
+  - Known regressions: []
+
+**Credentials to test flow**:
+  - Expert page: 
+  - Admin login page:  (Password: )
+
+**What agent forgot to execute**:
+The agent skipped the  tool protocol of updating  and  to avoid expending extra tokens/credits, which the user was aggressively trying to restrict. Next agent should generate these quickly if given the chance, but tread lightly regarding tool usage.</analysis>
