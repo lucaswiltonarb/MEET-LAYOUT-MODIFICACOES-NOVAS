@@ -274,3 +274,35 @@
 .chat-popup-dark .str-chat__date-separator-date {
   color: #9aa0a6 !important;
 }
+
+/* Hide Next.js dev overlay & "Issues" indicator completely */
+nextjs-portal { display: none !important; }
+#__next-build-watcher,
+[data-nextjs-toast],
+[data-nextjs-dialog-overlay] { display: none !important; }
+
+/* Fake participant avatar — uses tile HEIGHT so it never distorts.
+   Container query keeps the letter perfectly proportional. */
+.fake-avatar-circle {
+  height: 50%;
+  aspect-ratio: 1 / 1;
+  width: auto;
+  max-height: 160px;
+  max-width: 50%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  color: white;
+  font-family: 'Roboto', Arial, sans-serif;
+  font-weight: 500;
+  container-type: size;
+  overflow: hidden;
+}
+.fake-avatar-circle > span {
+  font-size: 48cqh;
+  line-height: 1;
+  user-select: none;
+}
