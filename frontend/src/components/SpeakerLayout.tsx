@@ -93,6 +93,7 @@ const SpeakerLayout = () => {
     >
       {/* LEFT 60% — screen share */}
       <div
+        className="screenshare-tile"
         style={{
           flex: '0 0 60%',
           minWidth: 0,

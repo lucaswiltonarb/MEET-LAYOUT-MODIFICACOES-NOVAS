@@ -236,6 +236,17 @@
   position: relative !important;
 }
 
+/* Tela compartilhada — exibe 100% do conteúdo sem cortar.
+   Por padrão o Stream Video usa object-fit: cover, o que recorta a tela. */
+.screenshare-tile video,
+.screenshare-tile .str-video__video,
+.screenshare-tile .str-video__participant-view video {
+  object-fit: contain !important;
+  background: #000 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Dark theme overrides for Stream Chat inside ChatPopup
    Cobre nomes de classes antigos e novos (stream-chat-react 10/11+) */
 .chat-popup-dark,
