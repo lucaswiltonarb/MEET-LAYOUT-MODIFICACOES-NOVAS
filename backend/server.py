@@ -608,10 +608,16 @@ async def delete_expert_comment(request: Request):
     user_id, expert, plan = await require_expert(request)
     if not expert:
         return Response(content='{"error":"not an expert"}', status_code=403, media_type="application/json")
+    expert_id = str(expert["_id"])
     cid = request.query_params.get("id")
+    sent_only = request.query_params.get("sentOnly") == "true"
+    meeting_id = request.query_params.get("meetingId")
+    if sent_only and meeting_id:
+        result = await db.scheduled_comments.delete_many({"expertId": expert_id, "meetingId": meeting_id, "sent": True})
+        return {"ok": True, "deleted": result.deleted_count}
     if not cid:
         return Response(content='{"error":"id required"}', status_code=400, media_type="application/json")
-    await db.scheduled_comments.delete_one({"_id": ObjectId(cid), "expertId": str(expert["_id"])})
+    await db.scheduled_comments.delete_one({"_id": ObjectId(cid), "expertId": expert_id})
     return {"ok": True}
 
 # ── Expert Comments Send ────────────────────────────────────────────

@@ -20,6 +20,7 @@ import FakeTile, { FakeParticipant } from './FakeTile';
 import useMeetingFakes from '../hooks/useMeetingFakes';
 
 const MAX_PER_PAGE = 28; // 7 x 4
+const FEATURED_MIN = 5;  // ativa layout do apresentador a partir desse total
 
 // Returns the optimal grid dimensions for a given participant count,
 // capped at 7 columns x 4 rows so the layout fills the screen nicely.
@@ -33,6 +34,18 @@ function calcGrid(n: number): { cols: number; rows: number } {
   if (n <= 16) return { cols: 4, rows: 4 };
   if (n <= 20) return { cols: 5, rows: 4 };
   if (n <= 24) return { cols: 6, rows: 4 };
+  return { cols: 7, rows: 4 };
+}
+
+// Apresentador ocupa 2x2 (4 células); demais ocupam 1 célula.
+// total de células necessárias = (n - 1) + 4 = n + 3
+function calcFeaturedGrid(n: number): { cols: number; rows: number } {
+  const cells = n + 3;
+  if (cells <= 8) return { cols: 4, rows: 2 };
+  if (cells <= 12) return { cols: 4, rows: 3 };
+  if (cells <= 15) return { cols: 5, rows: 3 };
+  if (cells <= 20) return { cols: 5, rows: 4 };
+  if (cells <= 24) return { cols: 6, rows: 4 };
   return { cols: 7, rows: 4 };
 }
 
@@ -51,26 +64,50 @@ const GridLayout = () => {
 
   const { ref } = useAnimateVideoLayout(false);
 
-  // Combine real + fake participants into a single ordered list
+  // Combine real + fake participants into a single ordered list.
+  // Quando houver muitos participantes, o apresentador (criador da call)
+  // vai para a primeira posição e ganha tile destacado (2x2).
+  const creatorId = call?.state.createdBy?.id;
   const items: Item[] = useMemo(() => {
     const real: Item[] = participants.map((p) => ({ kind: 'real', participant: p }));
     const fk: Item[] = fakes.map((f) => ({ kind: 'fake', fake: f }));
-    return [...real, ...fk];
-  }, [participants, fakes]);
+    const combined = [...real, ...fk];
+    if (!creatorId || combined.length < FEATURED_MIN) return combined;
+    const idx = combined.findIndex(
+      (it) => it.kind === 'real' && it.participant.userId === creatorId
+    );
+    if (idx > 0) {
+      const [host] = combined.splice(idx, 1);
+      combined.unshift(host);
+    }
+    return combined;
+  }, [participants, fakes, creatorId]);
 
-  const pageCount = useMemo(() => Math.max(1, Math.ceil(items.length / MAX_PER_PAGE)), [items]);
+  const isFeatured = items.length >= FEATURED_MIN;
+  const PAGE_SIZE = isFeatured ? 25 : MAX_PER_PAGE; // 25 = 28 - 3 extras p/ apresentador
+  const pageCount = useMemo(
+    () => Math.max(1, Math.ceil(items.length / PAGE_SIZE)),
+    [items, PAGE_SIZE]
+  );
 
   const itemGroups = useMemo(() => {
     const groups: Item[][] = [];
-    for (let i = 0; i < items.length; i += MAX_PER_PAGE) {
-      groups.push(items.slice(i, i + MAX_PER_PAGE));
+    for (let i = 0; i < items.length; i += PAGE_SIZE) {
+      groups.push(items.slice(i, i + PAGE_SIZE));
     }
     if (groups.length === 0) groups.push([]);
     return groups;
-  }, [items]);
+  }, [items, PAGE_SIZE]);
 
   const selectedGroup = itemGroups[page] || [];
-  const { cols, rows } = useMemo(() => calcGrid(selectedGroup.length || 1), [selectedGroup.length]);
+  const featuredPage = isFeatured && page === 0; // apresentador só destaca na 1a página
+  const { cols, rows } = useMemo(
+    () =>
+      featuredPage
+        ? calcFeaturedGrid(selectedGroup.length || 1)
+        : calcGrid(selectedGroup.length || 1),
+    [selectedGroup.length, featuredPage]
+  );
 
   useEffect(() => {
     if (!call) return;
@@ -117,18 +154,25 @@ const GridLayout = () => {
       >
         {call && selectedGroup.length > 0 && (
           <>
-            {selectedGroup.map((item) =>
-              item.kind === 'real' ? (
-                <ParticipantView
-                  participant={item.participant}
-                  ParticipantViewUI={ParticipantViewUI}
-                  VideoPlaceholder={VideoPlaceholder}
-                  key={item.participant.sessionId}
-                />
+            {selectedGroup.map((item, idx) => {
+              const featuredStyle =
+                featuredPage && idx === 0
+                  ? { gridColumn: 'span 2', gridRow: 'span 2' }
+                  : undefined;
+              return item.kind === 'real' ? (
+                <div style={featuredStyle} key={item.participant.sessionId}>
+                  <ParticipantView
+                    participant={item.participant}
+                    ParticipantViewUI={ParticipantViewUI}
+                    VideoPlaceholder={VideoPlaceholder}
+                  />
+                </div>
               ) : (
-                <FakeTile fake={item.fake} key={item.fake._id} />
-              )
-            )}
+                <div style={featuredStyle} key={item.fake._id}>
+                  <FakeTile fake={item.fake} />
+                </div>
+              );
+            })}
           </>
         )}
       </div>

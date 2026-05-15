@@ -7,6 +7,7 @@ interface ChatToast {
   authorName: string;
   authorImage?: string;
   authorInitial: string;
+  authorColor: string;
   text: string;
 }
 
@@ -16,6 +17,20 @@ interface ChatNotificationsProps {
   currentUserId: string | undefined;
   onClickToast?: () => void;
 }
+
+// 20-color palette inspired by Google Meet avatar colors.
+const AVATAR_PALETTE = [
+  '#1a73e8', '#d93025', '#188038', '#f9ab00', '#9334e6',
+  '#e8710a', '#1e8e3e', '#a142f4', '#ea4335', '#34a853',
+  '#fbbc04', '#673ab7', '#ff5722', '#009688', '#3f51b5',
+  '#e91e63', '#795548', '#607d8b', '#00acc1', '#7b1fa2',
+];
+
+const colorForUser = (key: string): string => {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+};
 
 /**
  * Listens to the chat channel and shows Google Meet style toasts in the
@@ -35,6 +50,7 @@ const ChatNotifications = ({ channel, isChatOpen, currentUserId, onClickToast }:
       if (isChatOpen) return;
       const authorName = msg.user?.name || msg.user?.id || 'Alguém';
       const initial = (authorName.trim()[0] || '?').toUpperCase();
+      const authorColor = colorForUser(msg.user?.id || authorName);
       setToasts((prev) => {
         const next: ChatToast[] = [
           ...prev,
@@ -43,6 +59,7 @@ const ChatNotifications = ({ channel, isChatOpen, currentUserId, onClickToast }:
             authorName,
             authorImage: msg.user?.image,
             authorInitial: initial,
+            authorColor,
             text: String(msg.text),
           },
         ];
@@ -102,7 +119,7 @@ const ChatNotifications = ({ channel, isChatOpen, currentUserId, onClickToast }:
               width: 36,
               height: 36,
               borderRadius: '50%',
-              background: '#8e24aa',
+              background: t.authorColor,
               color: 'white',
               display: 'flex',
               alignItems: 'center',

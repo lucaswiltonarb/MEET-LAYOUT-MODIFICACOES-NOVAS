@@ -22,19 +22,15 @@ const ChatPopup = ({ channel, isOpen, onClose }: ChatPopupProps) => {
       data-testid="chat-popup"
       className="chat-popup-dark"
       style={{
-        position: 'absolute',
-        right: 8,
-        top: 8,
-        bottom: 92,
-        width: 360,
-        maxWidth: 'calc(100vw - 16px)',
+        position: 'relative',
+        width: '100%',
+        height: '100%',
         background: '#1f1f1f',
         color: 'white',
         borderRadius: 12,
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         display: 'flex',
         flexDirection: 'column',
-        zIndex: 30,
         fontFamily: 'Roboto, Arial, sans-serif',
         overflow: 'hidden',
       }}

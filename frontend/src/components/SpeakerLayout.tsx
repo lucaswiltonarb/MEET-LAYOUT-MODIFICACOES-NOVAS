@@ -76,13 +76,26 @@ const SpeakerLayout = () => {
             />
           )}
         </div>
-        {call && (otherParticipants.length > 0 || fakes.length > 0) && (
+        {call && (otherParticipants.length > 0 || fakes.length > 0 || (participantInSpotlight && hasScreenShare(participantInSpotlight))) && (
           <div className="str-video__speaker-layout__participants-bar-buttons-wrapper">
             <div className="str-video__speaker-layout__participants-bar-wrapper">
               <div
                 ref={setParticipantsBar}
                 className="str-video__speaker-layout__participants-bar"
               >
+                {participantInSpotlight && hasScreenShare(participantInSpotlight) && (
+                  <div
+                    key={`${participantInSpotlight.sessionId}-cam`}
+                    className="str-video__speaker-layout__participant-tile"
+                  >
+                    <ParticipantView
+                      participant={participantInSpotlight}
+                      trackType="videoTrack"
+                      ParticipantViewUI={ParticipantViewUI}
+                      VideoPlaceholder={VideoPlaceholder}
+                    />
+                  </div>
+                )}
                 {otherParticipants.map((participant) => (
                   <div
                     key={participant.sessionId}
