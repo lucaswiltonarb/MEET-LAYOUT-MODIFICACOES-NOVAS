@@ -14,6 +14,7 @@ import clsx from 'clsx';
 
 import ParticipantViewUI from './ParticipantViewUI';
 import useAnimateVideoLayout from '../hooks/useAnimateVideoLayout';
+import useIsMobile from '../hooks/useIsMobile';
 import VideoPlaceholder from './VideoPlaceholder';
 import FakeTile, { FakeParticipant } from './FakeTile';
 import useMeetingFakes from '../hooks/useMeetingFakes';
@@ -45,6 +46,7 @@ const GridLayout = () => {
   const participants = useParticipants();
   const fakes = useMeetingFakes(meetingId);
   const [page, setPage] = useState(0);
+  const isMobile = useIsMobile();
 
   const { ref } = useAnimateVideoLayout(false);
 
@@ -70,7 +72,39 @@ const GridLayout = () => {
   const isFeatured = items.length >= FEATURED_THRESHOLD && !!hostItem;
 
   // Cálculo da página atual
-  const { displayItems, cols, rows, pageCount } = useMemo(() => {
+  const { displayItems, cols, rows, pageCount, mode } = useMemo(() => {
+    // ── Mobile ─────────────────────────────────────────────────────
+    if (isMobile) {
+      if (hostItem) {
+        // Host fixado no topo (largura total) + 2 cols abaixo, máx 6 por página.
+        const PAGE_M = 6;
+        const pageCnt = Math.max(1, Math.ceil(otherItems.length / PAGE_M));
+        const start = page * PAGE_M;
+        const slice = otherItems.slice(start, start + PAGE_M);
+        const othersRows = Math.max(1, Math.ceil(slice.length / 2));
+        return {
+          displayItems: [hostItem, ...slice],
+          cols: 2,
+          rows: 1 + othersRows,
+          pageCount: pageCnt,
+          mode: 'mobile-featured' as const,
+        };
+      }
+      // Sem host: grid simples 2 cols x N rows
+      const PAGE_M = 8;
+      const pageCnt = Math.max(1, Math.ceil(items.length / PAGE_M));
+      const start = page * PAGE_M;
+      const slice = items.slice(start, start + PAGE_M);
+      return {
+        displayItems: slice,
+        cols: 2,
+        rows: Math.max(1, Math.ceil(slice.length / 2)),
+        pageCount: pageCnt,
+        mode: 'mobile' as const,
+      };
+    }
+
+    // ── Desktop ────────────────────────────────────────────────────
     if (isFeatured) {
       const pageCnt = Math.max(1, Math.ceil(otherItems.length / PAGE_OTHERS_FEATURED));
       const start = page * PAGE_OTHERS_FEATURED;
@@ -80,6 +114,7 @@ const GridLayout = () => {
         cols: 4,
         rows: 4,
         pageCount: pageCnt,
+        mode: 'desktop-featured' as const,
       };
     }
     // modo não-featured: host (se houver) no topo-esquerda; grid pequeno 2×2 max.
@@ -88,8 +123,8 @@ const GridLayout = () => {
     const start = page * PAGE_NORMAL;
     const slice = ordered.slice(start, start + PAGE_NORMAL);
     const g = calcSmallGrid(slice.length);
-    return { displayItems: slice, cols: g.cols, rows: g.rows, pageCount: pageCnt };
-  }, [isFeatured, hostItem, otherItems, items, page]);
+    return { displayItems: slice, cols: g.cols, rows: g.rows, pageCount: pageCnt, mode: 'desktop' as const };
+  }, [isMobile, isFeatured, hostItem, otherItems, items, page]);
 
   useEffect(() => {
     if (page > pageCount - 1) setPage(Math.max(0, pageCount - 1));
@@ -133,8 +168,14 @@ const GridLayout = () => {
         }}
       >
         {call && displayItems.length > 0 && displayItems.map((item, idx) => {
-          // Host fica em 2×2 no canto superior esquerdo quando em modo featured.
-          const featuredStyle = isFeatured && idx === 0 ? { gridColumn: 'span 2', gridRow: 'span 2' } : undefined;
+          // Host fica em 2×2 no canto superior esquerdo (desktop featured).
+          // No mobile featured, host ocupa toda a largura no topo (span 2 cols).
+          let featuredStyle: React.CSSProperties | undefined;
+          if (mode === 'desktop-featured' && idx === 0) {
+            featuredStyle = { gridColumn: 'span 2', gridRow: 'span 2' };
+          } else if (mode === 'mobile-featured' && idx === 0) {
+            featuredStyle = { gridColumn: '1 / -1' };
+          }
           const wrapStyle = { ...featuredStyle, borderRadius: 12, overflow: 'hidden', minWidth: 0, minHeight: 0 } as React.CSSProperties;
           return item.kind === 'real' ? (
             <div style={wrapStyle} key={item.participant.sessionId}>

@@ -16,6 +16,7 @@ import ParticipantViewUI from './ParticipantViewUI';
 import VideoPlaceholder from './VideoPlaceholder';
 import FakeTile, { FakeParticipant } from './FakeTile';
 import useMeetingFakes from '../hooks/useMeetingFakes';
+import useIsMobile from '../hooks/useIsMobile';
 
 type SideItem =
   | { kind: 'real'; participant: StreamVideoParticipant }
@@ -42,6 +43,7 @@ const SpeakerLayout = () => {
   const fakes = useMeetingFakes(meetingId);
   const [page, setPage] = useState(0);
   const [railHidden, setRailHidden] = useState(false);
+  const isMobile = useIsMobile();
 
   const [participantInSpotlight, ...otherParticipants] = participants;
   const hostHasCamera = !!participantInSpotlight?.videoStream;
@@ -85,25 +87,29 @@ const SpeakerLayout = () => {
         inset: 0,
         bottom: 80,
         display: 'flex',
-        justifyContent: railHidden ? 'center' : 'flex-start',
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: railHidden && !isMobile ? 'center' : 'flex-start',
         alignItems: 'stretch',
-        gap: 12,
-        paddingBlock: 12,
-        paddingInline: railHidden ? 'clamp(8px, 1.5%, 24px)' : 'clamp(12px, 4%, 60px)',
+        gap: isMobile ? 8 : 12,
+        paddingBlock: isMobile ? 8 : 12,
+        paddingInline: isMobile ? 8 : (railHidden ? 'clamp(8px, 1.5%, 24px)' : 'clamp(12px, 4%, 60px)'),
         boxSizing: 'border-box',
         overflow: 'hidden',
         transition: 'padding 200ms ease',
       }}
     >
-      {/* LEFT — screen share (60% normal, 100% quando rail oculto) */}
+      {/* TOP/LEFT — screen share
+          desktop: 60% width (ou 100% se railHidden)
+          mobile : 40% height fixo no topo */}
       <div
         className="screenshare-tile"
         style={{
-          flex: railHidden ? '1 1 100%' : '0 0 60%',
-          width: railHidden ? '100%' : undefined,
+          flex: isMobile ? '0 0 40%' : (railHidden ? '1 1 100%' : '0 0 60%'),
+          width: !isMobile && railHidden ? '100%' : undefined,
           maxWidth: '100%',
           minWidth: 0,
-          height: '100%',
+          minHeight: 0,
+          height: isMobile ? undefined : '100%',
           position: 'relative',
           borderRadius: 12,
           overflow: 'hidden',
@@ -119,7 +125,8 @@ const SpeakerLayout = () => {
             VideoPlaceholder={VideoPlaceholder}
           />
         )}
-        {/* Toggle ocultar/mostrar participantes */}
+        {/* Toggle ocultar/mostrar participantes — desktop only */}
+        {!isMobile && (
         <button
           data-testid="toggle-rail-btn"
           aria-label={railHidden ? 'Mostrar participantes' : 'Ocultar participantes'}
@@ -153,22 +160,24 @@ const SpeakerLayout = () => {
             )}
           </svg>
         </button>
+        )}
       </div>
 
-      {/* RIGHT 40% — rail (some quando ocultado) */}
-      {!railHidden && (
+      {/* BOTTOM/RIGHT — rail (mobile sempre visível; desktop some se railHidden) */}
+      {(!railHidden || isMobile) && (
       <div
         style={{
-          flex: '1 1 40%',
+          flex: isMobile ? '1 1 60%' : '1 1 40%',
           minWidth: 0,
+          minHeight: 0,
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
         }}
       >
-        {/* Host camera tile (40% da altura do rail, full width) */}
-        {showHostCamRail && participantInSpotlight && (
+        {/* Host camera tile (40% da altura do rail, full width) — desktop only */}
+        {!isMobile && showHostCamRail && participantInSpotlight && (
           <div
             key={`${participantInSpotlight.sessionId}-host-cam`}
             style={{

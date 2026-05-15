@@ -25,6 +25,7 @@ import SpeakerLayout from '@/components/SpeakerLayout';
 import ToggleAudioButton from '@/components/ToggleAudioButton';
 import ToggleVideoButton from '@/components/ToggleVideoButton';
 import useTime from '@/hooks/useTime';
+import useIsMobile from '@/hooks/useIsMobile';
 
 const Meeting = () => {
   const { meetingId } = useParams();
@@ -46,6 +47,7 @@ const Meeting = () => {
   const [prevParticipantsCount, setPrevParticipantsCount] = useState(0);
   const isCreator = call?.state.createdBy?.id === user?.id;
   const isUnkownOrIdle = callingState === CallingState.UNKNOWN || callingState === CallingState.IDLE;
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const startup = async () => {
@@ -76,32 +78,52 @@ const Meeting = () => {
         <div className="relative flex-1 min-w-0 transition-[flex-basis] duration-200">
           {isSpeakerLayout ? <SpeakerLayout /> : <GridLayout />}
           <div className="absolute left-0 bottom-0 right-0 w-full h-20 bg-meet-black text-white text-center flex items-center justify-between">
+            {!isMobile && (
             <div className="hidden sm:flex grow shrink basis-1/4 items-center text-start justify-start ml-3 truncate max-w-full">
               <div className="flex items-center overflow-hidden mx-3 h-20 gap-3 select-none">
                 <span className="font-medium">{currentTime}</span><span>|</span><span className="font-medium truncate">{meetingId}</span>
               </div>
             </div>
-            <div className="relative flex grow shrink basis-1/4 items-center justify-center px-1.5 gap-3 ml-0">
+            )}
+            <div className={isMobile ? "relative flex w-full items-center justify-around px-1.5 gap-1" : "relative flex grow shrink basis-1/4 items-center justify-center px-1.5 gap-3 ml-0"}>
               <ToggleAudioButton /><ToggleVideoButton />
-              <CallControlButton icon={<ClosedCaptions />} title="Ativar legendas" />
-              <CallControlButton icon={<Mood />} title="Enviar uma reacao" className="hidden sm:inline-flex" />
+              {!isMobile && <CallControlButton icon={<ClosedCaptions />} title="Ativar legendas" />}
+              {!isMobile && <CallControlButton icon={<Mood />} title="Enviar uma reacao" className="hidden sm:inline-flex" />}
               <CallControlButton onClick={toggleScreenShare} icon={<PresentToAll />} title="Apresentar agora" />
-              <RecordCallButton />
+              {!isMobile && <RecordCallButton />}
+              {!isMobile && (
               <div className="hidden sm:block relative">
                 <CallControlButton onClick={() => setIsRecordingListOpen(p => !p)} icon={<MoreVert />} title="Ver lista de gravacoes" />
                 <RecordingsPopup isOpen={isRecordingListOpen} onClose={() => setIsRecordingListOpen(false)} />
               </div>
+              )}
+              {/* No mobile, juntar pessoas+chat aqui no centro */}
+              {isMobile && (
+                <>
+                  <CallControlButton onClick={() => { setIsPeopleOpen(p => !p); setIsChatOpen(false); }} icon={<Group />} title="Pessoas" />
+                  <CallControlButton onClick={() => { setIsChatOpen(p => !p); setIsPeopleOpen(false); }} icon={isChatOpen ? <ChatFilled color="var(--icon-blue)" /> : <Chat />} title="Conversar com todos" />
+                </>
+              )}
               <CallControlButton onClick={leaveCall} icon={<CallEndFilled />} title="Sair da chamada" className="leave-call-button" />
             </div>
+            {!isMobile && (
             <div className="hidden sm:flex grow shrink basis-1/4 items-center justify-end mr-3">
               <CallInfoButton icon={<Info />} title="Detalhes da reuniao" />
               <CallInfoButton onClick={() => { setIsPeopleOpen(p => !p); setIsChatOpen(false); }} icon={<Group />} title="Pessoas" />
               <CallInfoButton onClick={() => { setIsChatOpen(p => !p); setIsPeopleOpen(false); }} icon={isChatOpen ? <ChatFilled color="var(--icon-blue)" /> : <Chat />} title="Conversar com todos" />
             </div>
+            )}
           </div>
         </div>
         {(isChatOpen || isPeopleOpen) && (
-          <div className="relative shrink-0 h-svh transition-all duration-200" style={{ width: 360, padding: '8px 8px 8px 0' }}>
+          <div
+            className="shrink-0 transition-all duration-200"
+            style={
+              isMobile
+                ? { position: 'fixed', inset: 0, zIndex: 40, padding: 8, background: '#0a0a0a' }
+                : { position: 'relative', height: '100svh', width: 360, padding: '8px 8px 8px 0' }
+            }
+          >
             {isPeopleOpen && <PeoplePanel isOpen={isPeopleOpen} onClose={() => setIsPeopleOpen(false)} meetingId={meetingId!} />}
             {isChatOpen && <ChatPopup channel={chatChannel!} isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
           </div>
