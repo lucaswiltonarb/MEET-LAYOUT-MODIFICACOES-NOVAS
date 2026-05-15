@@ -41,6 +41,7 @@ const SpeakerLayout = () => {
   const participants = useParticipants();
   const fakes = useMeetingFakes(meetingId);
   const [page, setPage] = useState(0);
+  const [railHidden, setRailHidden] = useState(false);
 
   const [participantInSpotlight, ...otherParticipants] = participants;
   const hostHasCamera = !!participantInSpotlight?.videoStream;
@@ -91,16 +92,17 @@ const SpeakerLayout = () => {
         overflow: 'hidden',
       }}
     >
-      {/* LEFT 60% — screen share */}
+      {/* LEFT — screen share (60% normal, 100% quando rail oculto) */}
       <div
         className="screenshare-tile"
         style={{
-          flex: '0 0 60%',
+          flex: railHidden ? '1 1 100%' : '0 0 60%',
           minWidth: 0,
           position: 'relative',
           borderRadius: 12,
           overflow: 'hidden',
           background: '#202124',
+          transition: 'flex-basis 200ms ease',
         }}
       >
         {call && participantInSpotlight && (
@@ -111,9 +113,44 @@ const SpeakerLayout = () => {
             VideoPlaceholder={VideoPlaceholder}
           />
         )}
+        {/* Toggle ocultar/mostrar participantes */}
+        <button
+          data-testid="toggle-rail-btn"
+          aria-label={railHidden ? 'Mostrar participantes' : 'Ocultar participantes'}
+          title={railHidden ? 'Mostrar participantes' : 'Ocultar participantes'}
+          onClick={() => setRailHidden((v) => !v)}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            background: 'rgba(0,0,0,0.6)',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 6,
+            backdropFilter: 'blur(6px)',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,0.8)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,0.6)')}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            {railHidden ? (
+              <path d="M3 5h18v2H3V5zm0 6h12v2H3v-2zm0 6h18v2H3v-2zm15-7l4 3-4 3v-6z" />
+            ) : (
+              <path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2zm15-8l-4 3 4 3V9z" />
+            )}
+          </svg>
+        </button>
       </div>
 
-      {/* RIGHT 40% — rail */}
+      {/* RIGHT 40% — rail (some quando ocultado) */}
+      {!railHidden && (
       <div
         style={{
           flex: '1 1 40%',
@@ -232,6 +269,7 @@ const SpeakerLayout = () => {
           </>
         )}
       </div>
+      )}
     </div>
   );
 };
