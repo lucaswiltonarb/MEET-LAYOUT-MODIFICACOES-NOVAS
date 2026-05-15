@@ -7,6 +7,7 @@ import {
   Window,
 } from 'stream-chat-react';
 import { type Channel as ChannelType } from 'stream-chat';
+import ChatAvatar from './ChatAvatar';
 
 interface ChatPopupProps {
   isOpen: boolean;
@@ -69,7 +70,7 @@ const ChatPopup = ({ channel, isOpen, onClose }: ChatPopupProps) => {
         </button>
       </div>
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <Channel channel={channel}>
+        <Channel channel={channel} Avatar={ChatAvatar}>
           <Window>
             <MessageList disableDateSeparator />
             <MessageInput noFiles />

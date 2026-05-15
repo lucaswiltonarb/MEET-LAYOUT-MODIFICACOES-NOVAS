@@ -236,21 +236,53 @@
   position: relative !important;
 }
 
-/* Dark theme overrides for Stream Chat inside ChatPopup */
+/* Dark theme overrides for Stream Chat inside ChatPopup
+   Cobre nomes de classes antigos e novos (stream-chat-react 10/11+) */
+.chat-popup-dark,
 .chat-popup-dark .str-chat,
 .chat-popup-dark .str-chat__container,
 .chat-popup-dark .str-chat__main-panel,
+.chat-popup-dark .str-chat__main-panel-inner,
+.chat-popup-dark .str-chat__channel,
+.chat-popup-dark .str-chat__channel-list,
 .chat-popup-dark .str-chat__list,
-.chat-popup-dark .str-chat__message-list-scroll {
+.chat-popup-dark .str-chat__message-list,
+.chat-popup-dark .str-chat__message-list-scroll,
+.chat-popup-dark .str-chat__virtual-message-list,
+.chat-popup-dark .str-chat__virtual-list,
+.chat-popup-dark .str-chat__virtual-list-message-wrapper,
+.chat-popup-dark .str-chat__loading-channel-message-list,
+.chat-popup-dark .str-chat__empty-channel,
+.chat-popup-dark .str-chat__thread {
   background: #1f1f1f !important;
   color: #e8eaed !important;
 }
+/* CSS variables exposed by stream-chat-react v11 */
+.chat-popup-dark {
+  --str-chat__background-color: #1f1f1f;
+  --str-chat__secondary-background-color: #1f1f1f;
+  --str-chat__tertiary-background-color: #2a2a2a;
+  --str-chat__surface-color: #1f1f1f;
+  --str-chat__primary-surface-color: #2a2a2a;
+  --str-chat__primary-surface-color-low-emphasis: #2a2a2a;
+  --str-chat__own-message-bubble-background-color: #2d5278;
+  --str-chat__message-bubble-background-color: #2a2a2a;
+  --str-chat__message-bubble-color: #e8eaed;
+  --str-chat__text-color: #e8eaed;
+  --str-chat__text-low-emphasis-color: #9aa0a6;
+  --str-chat__message-input-background-color: #1f1f1f;
+  --str-chat__message-input-tools-color: #9aa0a6;
+  --str-chat__border-color: #303030;
+}
 .chat-popup-dark .str-chat__message-input,
 .chat-popup-dark .str-chat__input-flat,
-.chat-popup-dark .str-chat__message-input-inner {
+.chat-popup-dark .str-chat__message-input-inner,
+.chat-popup-dark .str-chat__message-textarea-container,
+.chat-popup-dark .str-chat__message-input-not-allowed {
   background: #1f1f1f !important;
 }
 .chat-popup-dark .str-chat__textarea textarea,
+.chat-popup-dark .str-chat__message-textarea,
 .chat-popup-dark textarea.rta__textarea {
   background: #2a2a2a !important;
   color: white !important;
@@ -259,19 +291,27 @@
 }
 .chat-popup-dark .str-chat__message-simple-text-inner,
 .chat-popup-dark .str-chat__message-text-inner,
-.chat-popup-dark .str-chat__message-bubble {
+.chat-popup-dark .str-chat__message-bubble,
+.chat-popup-dark .str-chat__message .str-chat__message-text,
+.chat-popup-dark .str-chat__message-attachment-card {
   background: #2a2a2a !important;
   color: #e8eaed !important;
 }
 .chat-popup-dark .str-chat__message-author,
 .chat-popup-dark .str-chat__message-team-author,
-.chat-popup-dark .str-chat__message-username {
+.chat-popup-dark .str-chat__message-username,
+.chat-popup-dark .str-chat__message-sender-name,
+.chat-popup-dark .str-chat__message-simple-name {
   color: #e8eaed !important;
 }
 .chat-popup-dark .str-chat__date-separator-line {
   background: #3c4043 !important;
 }
-.chat-popup-dark .str-chat__date-separator-date {
+.chat-popup-dark .str-chat__date-separator-date,
+.chat-popup-dark .str-chat__message-timestamp,
+.chat-popup-dark .str-chat__message-data,
+.chat-popup-dark .str-chat__empty-channel p,
+.chat-popup-dark .str-chat__empty-channel-text {
   color: #9aa0a6 !important;
 }
 

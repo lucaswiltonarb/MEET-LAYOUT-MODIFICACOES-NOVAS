@@ -111,6 +111,13 @@ export default function ExpertMeetingPanel() {
       load();
     }, 'danger', 'Limpar');
   };
+  const clearAllComments = () => {
+    if (comments.length === 0) { showAlert('Nada para limpar', 'Lista vazia.'); return; }
+    showConfirm(`Limpar TODOS os ${comments.length} comentário(s)?`, 'Inclui enviados e pendentes. Os agendados que ainda não foram disparados serão cancelados.', async () => {
+      await authFetch(`/api/expert/comments?all=true&meetingId=${meetingId}`, { method: 'DELETE' });
+      load();
+    }, 'danger', 'Limpar todos');
+  };
   const startAuto = () => {
     const pending = comments.filter(c => !c.sent); if (!pending.length) { showAlert('Nada para iniciar'); return; }
     setAutoStarted(true); pending.forEach(c => setTimeout(() => { sendNow(c._id); setAutoStarted(false); }, Math.max(0, c.delaySeconds * 1000)));
@@ -161,7 +168,7 @@ export default function ExpertMeetingPanel() {
           </div>
           {/* COMMENTS PANEL */}
           <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6">
-            <div className="flex items-center justify-between mb-4"><h2 className="text-xl font-light">Comentarios ({comments.length}{plan ? `/${plan.maxComments}` : ''})</h2><div className="flex gap-2">{comments.filter(c=>c.sent).length>0 && <button onClick={clearSentComments} className="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded">Limpar enviados</button>}<button onClick={startAuto} disabled={comments.filter(c=>!c.sent).length===0} className="text-xs bg-amber-600 px-3 py-1.5 rounded disabled:opacity-50">Iniciar auto</button></div></div>
+            <div className="flex items-center justify-between mb-4"><h2 className="text-xl font-light">Comentarios ({comments.length}{plan ? `/${plan.maxComments}` : ''})</h2><div className="flex gap-2 flex-wrap">{comments.filter(c=>c.sent).length>0 && <button onClick={clearSentComments} className="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded">Limpar enviados</button>}{comments.length>0 && <button onClick={clearAllComments} className="text-xs bg-red-900/60 border border-red-800 hover:bg-red-900 px-3 py-1.5 rounded">Limpar todos</button>}<button onClick={startAuto} disabled={comments.filter(c=>!c.sent).length===0} className="text-xs bg-amber-600 px-3 py-1.5 rounded disabled:opacity-50">Iniciar auto</button></div></div>
             <div className="flex flex-wrap gap-1 mb-4 bg-slate-950 rounded-lg p-1 border border-slate-800">
               {[['single','Individual'],['multi','Em lote'],['distribute','Distribuir'],['broadcast','Broadcast'],['library',`Biblioteca (${library.length})`]].map(([m,label]: any) => <button key={m} onClick={() => setMode(m)} className={`flex-1 min-w-[80px] px-3 py-2 rounded-md text-xs font-medium ${mode===m ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>{label}</button>)}
             </div>

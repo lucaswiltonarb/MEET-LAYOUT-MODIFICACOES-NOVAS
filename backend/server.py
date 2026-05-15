@@ -611,9 +611,13 @@ async def delete_expert_comment(request: Request):
     expert_id = str(expert["_id"])
     cid = request.query_params.get("id")
     sent_only = request.query_params.get("sentOnly") == "true"
+    all_only = request.query_params.get("all") == "true"
     meeting_id = request.query_params.get("meetingId")
-    if sent_only and meeting_id:
-        result = await db.scheduled_comments.delete_many({"expertId": expert_id, "meetingId": meeting_id, "sent": True})
+    if (sent_only or all_only) and meeting_id:
+        q: dict = {"expertId": expert_id, "meetingId": meeting_id}
+        if sent_only:
+            q["sent"] = True
+        result = await db.scheduled_comments.delete_many(q)
         return {"ok": True, "deleted": result.deleted_count}
     if not cid:
         return Response(content='{"error":"id required"}', status_code=400, media_type="application/json")
