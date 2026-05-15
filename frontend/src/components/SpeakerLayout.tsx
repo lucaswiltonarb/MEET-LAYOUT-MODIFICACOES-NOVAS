@@ -85,11 +85,14 @@ const SpeakerLayout = () => {
         inset: 0,
         bottom: 80,
         display: 'flex',
+        justifyContent: railHidden ? 'center' : 'flex-start',
+        alignItems: 'stretch',
         gap: 12,
         paddingBlock: 12,
-        paddingInline: 'clamp(12px, 4%, 60px)',
+        paddingInline: railHidden ? 'clamp(8px, 1.5%, 24px)' : 'clamp(12px, 4%, 60px)',
         boxSizing: 'border-box',
         overflow: 'hidden',
+        transition: 'padding 200ms ease',
       }}
     >
       {/* LEFT — screen share (60% normal, 100% quando rail oculto) */}
@@ -97,7 +100,10 @@ const SpeakerLayout = () => {
         className="screenshare-tile"
         style={{
           flex: railHidden ? '1 1 100%' : '0 0 60%',
+          width: railHidden ? '100%' : undefined,
+          maxWidth: '100%',
           minWidth: 0,
+          height: '100%',
           position: 'relative',
           borderRadius: 12,
           overflow: 'hidden',
