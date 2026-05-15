@@ -21,9 +21,17 @@ type SideItem =
   | { kind: 'real'; participant: StreamVideoParticipant }
   | { kind: 'fake'; fake: FakeParticipant };
 
-const PAGE_FIRST_WITH_HOSTCAM = 6;   // 3 linhas × 2 colunas abaixo do host cam
-const PAGE_FIRST_NO_HOSTCAM = 8;     // 4 linhas × 2 colunas
-const PAGE_REST = 8;                 // demais páginas
+// Tela compartilhada:
+//  - Esquerda 60%: o screen share.
+//  - Direita 40% (rail):
+//      • Se o host tiver câmera ligada: TOPO ocupando 40% da ALTURA do rail
+//        com o card da câmera (largura total do rail).
+//      • RESTANTE 60% da altura: sub-grid 2 colunas × N linhas com os demais.
+//      • Página principal: 6 participantes (2×3). Demais páginas: 6 também,
+//        sempre em grid perfeito 2 colunas — sem quebrar linhas.
+const PAGE_SIZE = 6;
+const GRID_COLS = 2;
+const GRID_ROWS = 3;
 
 const SpeakerLayout = () => {
   const call = useCall();
@@ -36,7 +44,8 @@ const SpeakerLayout = () => {
 
   const [participantInSpotlight, ...otherParticipants] = participants;
   const hostHasCamera = !!participantInSpotlight?.videoStream;
-  const showHostCamRail = !!participantInSpotlight && hasScreenShare(participantInSpotlight) && hostHasCamera;
+  const showHostCamRail =
+    !!participantInSpotlight && hasScreenShare(participantInSpotlight) && hostHasCamera;
 
   const sideItems: SideItem[] = useMemo(() => {
     const real: SideItem[] = otherParticipants.map((p) => ({ kind: 'real', participant: p }));
@@ -44,29 +53,26 @@ const SpeakerLayout = () => {
     return [...real, ...fk];
   }, [otherParticipants, fakes]);
 
-  const firstPageSize = showHostCamRail ? PAGE_FIRST_WITH_HOSTCAM : PAGE_FIRST_NO_HOSTCAM;
+  const pageCount = useMemo(
+    () => Math.max(1, Math.ceil(sideItems.length / PAGE_SIZE)),
+    [sideItems.length]
+  );
 
-  const pageCount = useMemo(() => {
-    if (sideItems.length === 0) return 1;
-    if (sideItems.length <= firstPageSize) return 1;
-    return 1 + Math.ceil((sideItems.length - firstPageSize) / PAGE_REST);
-  }, [sideItems.length, firstPageSize]);
+  useEffect(() => {
+    if (page >= pageCount) setPage(pageCount - 1);
+  }, [page, pageCount]);
 
-  useEffect(() => { if (page >= pageCount) setPage(pageCount - 1); }, [page, pageCount]);
-
-  const pageSlice = useMemo(() => {
-    if (page === 0) return sideItems.slice(0, firstPageSize);
-    const start = firstPageSize + (page - 1) * PAGE_REST;
-    return sideItems.slice(start, start + PAGE_REST);
-  }, [page, sideItems, firstPageSize]);
-
-  const isFirstPage = page === 0;
-  const rowsCount = isFirstPage && showHostCamRail ? 4 : 4; // 1 row host + 3 rows; ou 4 rows sem host
-  const gridRowsCss = `repeat(${rowsCount}, 1fr)`;
+  const pageSlice = useMemo(
+    () => sideItems.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE),
+    [page, sideItems]
+  );
 
   useEffect(() => {
     if (!call) return;
-    const customSortingPreset: Comparator<StreamVideoParticipant> = combineComparators(screenSharing, pinned);
+    const customSortingPreset: Comparator<StreamVideoParticipant> = combineComparators(
+      screenSharing,
+      pinned
+    );
     call.setSortParticipantsBy(customSortingPreset);
   }, [call]);
 
@@ -80,14 +86,13 @@ const SpeakerLayout = () => {
         display: 'flex',
         gap: 12,
         paddingBlock: 12,
-        paddingInline: 'clamp(12px, 10%, 240px)',
+        paddingInline: 'clamp(12px, 4%, 60px)',
         boxSizing: 'border-box',
         overflow: 'hidden',
       }}
     >
       {/* LEFT 60% — screen share */}
       <div
-        className="custom-speaker-layout__screen"
         style={{
           flex: '0 0 60%',
           minWidth: 0,
@@ -107,26 +112,23 @@ const SpeakerLayout = () => {
         )}
       </div>
 
-      {/* RIGHT 40% — column with host cam (if any) + 2-col grid */}
+      {/* RIGHT 40% — rail */}
       <div
-        className="custom-speaker-layout__rail"
         style={{
           flex: '1 1 40%',
           minWidth: 0,
           position: 'relative',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: gridRowsCss,
+          display: 'flex',
+          flexDirection: 'column',
           gap: 8,
         }}
       >
-        {/* host camera tile (spans full width of right column, only on page 0 with host cam) */}
-        {isFirstPage && showHostCamRail && participantInSpotlight && (
+        {/* Host camera tile (40% da altura do rail, full width) */}
+        {showHostCamRail && participantInSpotlight && (
           <div
             key={`${participantInSpotlight.sessionId}-host-cam`}
             style={{
-              gridColumn: '1 / -1',
-              gridRow: '1',
+              flex: '0 0 40%',
               borderRadius: 12,
               overflow: 'hidden',
               minWidth: 0,
@@ -142,24 +144,36 @@ const SpeakerLayout = () => {
           </div>
         )}
 
-        {pageSlice.map((item) => (
-          <div
-            key={item.kind === 'real' ? item.participant.sessionId : item.fake._id}
-            style={{ borderRadius: 12, overflow: 'hidden', minWidth: 0, minHeight: 0 }}
-          >
-            {item.kind === 'real' ? (
-              <ParticipantView
-                participant={item.participant}
-                ParticipantViewUI={ParticipantViewUI}
-                VideoPlaceholder={VideoPlaceholder}
-              />
-            ) : (
-              <FakeTile fake={item.fake} />
-            )}
-          </div>
-        ))}
+        {/* Bottom 60% — 2 cols × 3 rows grid de demais participantes */}
+        <div
+          style={{
+            flex: '1 1 60%',
+            minHeight: 0,
+            display: 'grid',
+            gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
+            gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`,
+            gap: 8,
+          }}
+        >
+          {pageSlice.map((item) => (
+            <div
+              key={item.kind === 'real' ? item.participant.sessionId : item.fake._id}
+              style={{ borderRadius: 12, overflow: 'hidden', minWidth: 0, minHeight: 0 }}
+            >
+              {item.kind === 'real' ? (
+                <ParticipantView
+                  participant={item.participant}
+                  ParticipantViewUI={ParticipantViewUI}
+                  VideoPlaceholder={VideoPlaceholder}
+                />
+              ) : (
+                <FakeTile fake={item.fake} />
+              )}
+            </div>
+          ))}
+        </div>
 
-        {/* pagination arrows */}
+        {/* Pagination arrows */}
         {pageCount > 1 && (
           <>
             <button

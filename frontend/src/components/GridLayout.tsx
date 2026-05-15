@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import {
   combineComparators,
   Comparator,
-  IconButton,
   ParticipantView,
   pinned,
   screenSharing,
@@ -19,39 +18,24 @@ import VideoPlaceholder from './VideoPlaceholder';
 import FakeTile, { FakeParticipant } from './FakeTile';
 import useMeetingFakes from '../hooks/useMeetingFakes';
 
-const MAX_PER_PAGE = 28; // 7 x 4
-const FEATURED_MIN = 5;  // ativa layout do apresentador a partir desse total
-
-// Returns the optimal grid dimensions for a given participant count,
-// capped at 7 columns x 4 rows so the layout fills the screen nicely.
-function calcGrid(n: number): { cols: number; rows: number } {
-  if (n <= 1) return { cols: 1, rows: 1 };
-  if (n <= 2) return { cols: 2, rows: 1 };
-  if (n <= 4) return { cols: 2, rows: 2 };
-  if (n <= 6) return { cols: 3, rows: 2 };
-  if (n <= 9) return { cols: 3, rows: 3 };
-  if (n <= 12) return { cols: 4, rows: 3 };
-  if (n <= 16) return { cols: 4, rows: 4 };
-  if (n <= 20) return { cols: 5, rows: 4 };
-  if (n <= 24) return { cols: 6, rows: 4 };
-  return { cols: 7, rows: 4 };
-}
-
-// Apresentador ocupa 2x2 (4 células); demais ocupam 1 célula.
-// total de células necessárias = (n - 1) + 4 = n + 3
-function calcFeaturedGrid(n: number): { cols: number; rows: number } {
-  const cells = n + 3;
-  if (cells <= 8) return { cols: 4, rows: 2 };
-  if (cells <= 12) return { cols: 4, rows: 3 };
-  if (cells <= 15) return { cols: 5, rows: 3 };
-  if (cells <= 20) return { cols: 5, rows: 4 };
-  if (cells <= 24) return { cols: 6, rows: 4 };
-  return { cols: 7, rows: 4 };
-}
+// Modo normal (sem compartilhamento de tela):
+//  - Total ≤ 4: grid simples 2×2 com host no quadrante superior esquerdo (25%).
+//  - Total ≥ 5: grid macro 4×4 onde o host ocupa 2×2 = 25% do total.
+//    Outros 12 participantes ocupam as 12 células restantes. O host fica
+//    fixado em TODAS as páginas; a paginação só rotaciona os demais.
+const FEATURED_THRESHOLD = 5;
+const PAGE_OTHERS_FEATURED = 12; // outros participantes por página (host à parte)
+const PAGE_NORMAL = 4;
 
 type Item =
   | { kind: 'real'; participant: StreamVideoParticipant }
   | { kind: 'fake'; fake: FakeParticipant };
+
+function calcSmallGrid(n: number): { cols: number; rows: number } {
+  if (n <= 1) return { cols: 1, rows: 1 };
+  if (n <= 2) return { cols: 2, rows: 1 };
+  return { cols: 2, rows: 2 };
+}
 
 const GridLayout = () => {
   const call = useCall();
@@ -64,66 +48,58 @@ const GridLayout = () => {
 
   const { ref } = useAnimateVideoLayout(false);
 
-  // Combine real + fake participants into a single ordered list.
-  // Quando houver muitos participantes, o apresentador (criador da call)
-  // vai para a primeira posição e ganha tile destacado (2x2).
-  const creatorId = call?.state.createdBy?.id;
+  // Lista combinada de participantes reais + fakes
   const items: Item[] = useMemo(() => {
     const real: Item[] = participants.map((p) => ({ kind: 'real', participant: p }));
     const fk: Item[] = fakes.map((f) => ({ kind: 'fake', fake: f }));
-    const combined = [...real, ...fk];
-    if (!creatorId || combined.length < FEATURED_MIN) return combined;
-    const idx = combined.findIndex(
-      (it) => it.kind === 'real' && it.participant.userId === creatorId
-    );
-    if (idx > 0) {
-      const [host] = combined.splice(idx, 1);
-      combined.unshift(host);
-    }
-    return combined;
-  }, [participants, fakes, creatorId]);
+    return [...real, ...fk];
+  }, [participants, fakes]);
 
-  const isFeatured = items.length >= FEATURED_MIN;
-  const PAGE_SIZE = isFeatured ? 25 : MAX_PER_PAGE; // 25 = 28 - 3 extras p/ apresentador
-  const pageCount = useMemo(
-    () => Math.max(1, Math.ceil(items.length / PAGE_SIZE)),
-    [items, PAGE_SIZE]
+  // Identifica o host (criador da call) — sempre vai pro topo
+  const creatorId = call?.state.createdBy?.id;
+  const hostIdx = useMemo(
+    () => (creatorId ? items.findIndex((it) => it.kind === 'real' && it.participant.userId === creatorId) : -1),
+    [creatorId, items]
+  );
+  const hostItem = hostIdx >= 0 ? items[hostIdx] : null;
+  const otherItems = useMemo(
+    () => (hostItem ? items.filter((_, i) => i !== hostIdx) : items),
+    [hostItem, items, hostIdx]
   );
 
-  const itemGroups = useMemo(() => {
-    const groups: Item[][] = [];
-    for (let i = 0; i < items.length; i += PAGE_SIZE) {
-      groups.push(items.slice(i, i + PAGE_SIZE));
-    }
-    if (groups.length === 0) groups.push([]);
-    return groups;
-  }, [items, PAGE_SIZE]);
+  const isFeatured = items.length >= FEATURED_THRESHOLD && !!hostItem;
 
-  const selectedGroup = itemGroups[page] || [];
-  const featuredPage = isFeatured && page === 0; // apresentador só destaca na 1a página
-  const { cols, rows } = useMemo(
-    () =>
-      featuredPage
-        ? calcFeaturedGrid(selectedGroup.length || 1)
-        : calcGrid(selectedGroup.length || 1),
-    [selectedGroup.length, featuredPage]
-  );
+  // Cálculo da página atual
+  const { displayItems, cols, rows, pageCount } = useMemo(() => {
+    if (isFeatured) {
+      const pageCnt = Math.max(1, Math.ceil(otherItems.length / PAGE_OTHERS_FEATURED));
+      const start = page * PAGE_OTHERS_FEATURED;
+      const slice = otherItems.slice(start, start + PAGE_OTHERS_FEATURED);
+      return {
+        displayItems: [hostItem!, ...slice],
+        cols: 4,
+        rows: 4,
+        pageCount: pageCnt,
+      };
+    }
+    // modo não-featured: host (se houver) no topo-esquerda; grid pequeno 2×2 max.
+    const ordered = hostItem ? [hostItem, ...otherItems] : items;
+    const pageCnt = Math.max(1, Math.ceil(ordered.length / PAGE_NORMAL));
+    const start = page * PAGE_NORMAL;
+    const slice = ordered.slice(start, start + PAGE_NORMAL);
+    const g = calcSmallGrid(slice.length);
+    return { displayItems: slice, cols: g.cols, rows: g.rows, pageCount: pageCnt };
+  }, [isFeatured, hostItem, otherItems, items, page]);
+
+  useEffect(() => {
+    if (page > pageCount - 1) setPage(Math.max(0, pageCount - 1));
+  }, [page, pageCount]);
 
   useEffect(() => {
     if (!call) return;
-    const customSortingPreset = getCustomSortingPreset();
+    const customSortingPreset: Comparator<StreamVideoParticipant> = combineComparators(screenSharing, pinned);
     call.setSortParticipantsBy(customSortingPreset);
   }, [call]);
-
-  useEffect(() => {
-    if (page > pageCount - 1) {
-      setPage(Math.max(0, pageCount - 1));
-    }
-  }, [page, pageCount]);
-
-  const getCustomSortingPreset = (): Comparator<StreamVideoParticipant> => {
-    return combineComparators(screenSharing, pinned);
-  };
 
   return (
     <div
@@ -133,56 +109,57 @@ const GridLayout = () => {
     >
       {pageCount > 1 && (
         <div style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}>
-          <IconButton
-            icon="caret-left"
+          <button
+            aria-label="Página anterior"
             disabled={page === 0}
-            onClick={() => setPage((currentPage) => Math.max(0, currentPage - 1))}
-          />
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: page === 0 ? 'default' : 'pointer', opacity: page === 0 ? 0.3 : 1 }}
+          >‹</button>
         </div>
       )}
+
       <div
         className={clsx('str-video__paginated-grid-layout__group fake-grid-adaptive')}
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
           gridTemplateRows: `repeat(${rows}, 1fr)`,
-          gap: 6,
+          gap: 8,
           width: '100%',
           height: '100%',
-          padding: 6,
+          paddingBlock: 'clamp(8px, 1.5%, 16px)',
+          paddingInline: 'clamp(12px, 4%, 60px)',
+          boxSizing: 'border-box',
         }}
       >
-        {call && selectedGroup.length > 0 && (
-          <>
-            {selectedGroup.map((item, idx) => {
-              const featuredStyle =
-                featuredPage && idx === 0
-                  ? { gridColumn: 'span 2', gridRow: 'span 2' }
-                  : undefined;
-              return item.kind === 'real' ? (
-                <div style={featuredStyle} key={item.participant.sessionId}>
-                  <ParticipantView
-                    participant={item.participant}
-                    ParticipantViewUI={ParticipantViewUI}
-                    VideoPlaceholder={VideoPlaceholder}
-                  />
-                </div>
-              ) : (
-                <div style={featuredStyle} key={item.fake._id}>
-                  <FakeTile fake={item.fake} />
-                </div>
-              );
-            })}
-          </>
-        )}
+        {call && displayItems.length > 0 && displayItems.map((item, idx) => {
+          // Host fica em 2×2 no canto superior esquerdo quando em modo featured.
+          const featuredStyle = isFeatured && idx === 0 ? { gridColumn: 'span 2', gridRow: 'span 2' } : undefined;
+          const wrapStyle = { ...featuredStyle, borderRadius: 12, overflow: 'hidden', minWidth: 0, minHeight: 0 } as React.CSSProperties;
+          return item.kind === 'real' ? (
+            <div style={wrapStyle} key={item.participant.sessionId}>
+              <ParticipantView
+                participant={item.participant}
+                ParticipantViewUI={ParticipantViewUI}
+                VideoPlaceholder={VideoPlaceholder}
+              />
+            </div>
+          ) : (
+            <div style={wrapStyle} key={item.fake._id}>
+              <FakeTile fake={item.fake} />
+            </div>
+          );
+        })}
       </div>
+
       {pageCount > 1 && (
         <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}>
-          <IconButton
+          <button
+            aria-label="Próxima página"
             disabled={page === pageCount - 1}
-            icon="caret-right"
-            onClick={() => setPage((currentPage) => Math.min(pageCount - 1, currentPage + 1))}
-          />
+            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: page === pageCount - 1 ? 'default' : 'pointer', opacity: page === pageCount - 1 ? 0.3 : 1 }}
+          >›</button>
         </div>
       )}
     </div>
